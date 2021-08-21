@@ -65,7 +65,7 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str) -> 
                 f.write(response.content)
 
 
-def get_all_photos(my_bot: object, nickname: str) -> None:
+def download_all_user_photos(my_bot: object, nickname: str) -> None:
     """
     Получить все фотографии пользователя
     :param my_bot: класс Bot из библиотеки instabot
@@ -76,7 +76,7 @@ def get_all_photos(my_bot: object, nickname: str) -> None:
         download_photo_by_media_id(my_bot, media_id, filename=nickname + str(i))
 
 
-def get_photo_by_url(my_bot: object, url: str) -> None:
+def download_photos_by_url(my_bot: object, url: str) -> None:
     """
     Скачать фото по ссылке на пост в инстаграмме
     :param my_bot: класс Bot из библиотеки instabot

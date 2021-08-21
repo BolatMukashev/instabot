@@ -6,5 +6,5 @@ target_name = "adim0k"
 
 if __name__ == "__main__":
     insta_bot = functions.connect()
-    # functions.get_all_photos(insta_bot, target_name)
-    functions.get_photo_by_url(insta_bot, post_url)
+    # functions.download_all_user_photos(insta_bot, target_name)
+    functions.download_photos_by_url(insta_bot, post_url)
