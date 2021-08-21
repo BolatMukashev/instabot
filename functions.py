@@ -1,7 +1,8 @@
 import os
-import shutil
-import requests
 import time
+import shutil
+import random
+import requests
 from instabot import Bot
 from config import INST_USERNAME, INST_PASSWORD
 
@@ -39,6 +40,36 @@ def clean_up(*args: str, config_dir_name: str = "config") -> None:
                 shutil.rmtree(directory)
             except OSError as e:
                 print("Error: %s - %s." % (e.filename, e.strerror))
+
+
+def delete_image(image_name: str) -> None:
+    """
+    Удаление фотографии из директории photos по названию фотографии
+    :param image_name: название фотографии
+    """
+    directory = os.path.join(os.getcwd(), "photos", image_name)
+    if os.path.exists(directory):
+        os.remove(directory)
+
+
+def get_all_images_names() -> list:
+    """
+    Получить список имен всех фотографий в директории photos
+    :return: список имен
+    """
+    path = os.path.join(os.getcwd(), "photos")
+    images_names_list = os.listdir(path)
+    return images_names_list
+
+
+def random_choice_image() -> str:
+    """
+    Выбрать случайное имя фотографии из директории photos
+    :return: случайно выбранное имя
+    """
+    images_names_list = get_all_images_names()
+    image_name = random.choice(images_names_list)
+    return image_name
 
 
 def download_photo_by_media_id(my_bot: object, media_id: int, filename: str) -> None:
