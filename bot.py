@@ -9,12 +9,24 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 insta_bot = functions.connect()
 
 
+@dp.message_handler(commands="set_commands", state="*")
+async def cmd_set_commands(message: types.Message):
+    """Установить команды в боковой панели"""
+    user_id = message.from_user.id
+    if user_id == config.ADMIN_ID:
+        commands = [types.BotCommand(command="/delete_all", description="Удалить все фото"),
+                    types.BotCommand(command="/statistic", description="Статистика")]
+        await bot.set_my_commands(commands)
+        await message.answer("Команды установлены!")
+
+
 @dp.message_handler(commands=["start"])
 async def command_start(message: types.Message):
     """Начало работы, приветственное сообщение"""
     telegram_id = message.from_user.id
     if telegram_id == config.ADMIN_ID:
-        await message.answer("Привет Босс!")
+        await message.answer("Привет Босс!\n"
+                             "Нажми /set_commands чтобы установить базовые команды")
     else:
         await message.answer("Несанкционированный доступ!")
 

@@ -7,6 +7,9 @@ from instabot import Bot
 from config import INST_USERNAME, INST_PASSWORD, POST_IN_DAY
 
 
+test_list = []
+
+
 def connect() -> object:
     """
     Осуществляем вход в инстаграм по логину и паролю
@@ -97,7 +100,8 @@ def get_len_images() -> str:
         posts_day_count = images_len / POST_IN_DAY
     except ZeroDivisionError:
         posts_day_count = 0
-    text = f"Всего: {images_len} фотографий\nБудет публиковаться: {posts_day_count} дней"
+    text = f"Всего: {images_len} фотографий\n" \
+           f"Будет публиковаться: {posts_day_count} дней"
     return text
 
 
@@ -166,5 +170,6 @@ def download_photos_by_url(my_bot: object, url: str) -> None:
     filename = "my_choice" + str(time.time()).replace('.', '')
     download_photo_by_media_id(my_bot, media_id, filename=filename)
 
-
-# organic_tracking_token  -  уникальный хэш фото?
+# автовыкладывание
+# комментирование
+# хеширование и валидация
