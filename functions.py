@@ -77,8 +77,16 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str) -> 
     :param my_bot: класс Bot из библиотеки instabot
     :param media_id: id поста, в которой возможно содержится фотография или крусель из фотографий
     :param filename: название, что будет приствоено фотографии
+    media_type:
+    1 - фото
+    2 - видео
+    8 - карусель
     """
     media = my_bot.get_media_info(media_id)[0]
+    print(media['media_type'])
+    print(my_bot.get_media_info(media_id))
+    if media["media_type"] == 2:
+        return
     if "image_versions2" in media.keys():
         url = media["image_versions2"]["candidates"][0]["url"]
         response = requests.get(url)
@@ -88,12 +96,13 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str) -> 
             f.write(response.content)
     elif "carousel_media" in media.keys():
         for i, element in enumerate(media["carousel_media"]):
-            url = element['image_versions2']["candidates"][0]["url"]
-            response = requests.get(url)
-            image_name = os.path.join("photos", filename + "_" + str(i) + ".jpg")
-            with open(image_name, "wb") as f:
-                response.raw.decode_content = True
-                f.write(response.content)
+            if element['media_type'] != 2:
+                url = element['image_versions2']["candidates"][0]["url"]
+                response = requests.get(url)
+                image_name = os.path.join("photos", filename + "_" + str(i) + ".jpg")
+                with open(image_name, "wb") as f:
+                    response.raw.decode_content = True
+                    f.write(response.content)
 
 
 def download_all_user_photos(my_bot: object, nickname: str) -> None:

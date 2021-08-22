@@ -8,3 +8,4 @@ INST_PASSWORD = os.getenv('INST_PASSWORD')
 ADMIN_ID = int(os.getenv('ADMIN_ID'))
 CHAT_ID = int(os.getenv('CHAT_ID'))
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+POST_IN_DAY = 10
