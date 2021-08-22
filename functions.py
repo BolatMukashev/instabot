@@ -4,7 +4,7 @@ import shutil
 import random
 import requests
 from instabot import Bot
-from config import INST_USERNAME, INST_PASSWORD
+from config import INST_USERNAME, INST_PASSWORD, POST_IN_DAY
 
 
 def connect() -> object:
@@ -42,14 +42,38 @@ def clean_up(*args: str, config_dir_name: str = "config") -> None:
                 print("Error: %s - %s." % (e.filename, e.strerror))
 
 
+def check_and_create_folder(folder_name: str) -> None:
+    """
+    Проверяет, существует ли директория, если нет - создает
+    :param folder_name: Название диретории
+    """
+    directory = os.path.join(os.getcwd(), folder_name)
+    if not os.path.exists(directory):
+        os.mkdir(directory)
+
+
 def delete_image(image_name: str) -> None:
     """
     Удаление фотографии из директории photos по названию фотографии
     :param image_name: название фотографии
     """
-    directory = os.path.join(os.getcwd(), "photos", image_name)
+    image = os.path.join(os.getcwd(), "photos", image_name)
+    if os.path.exists(image):
+        os.remove(image)
+
+
+def delete_all_images() -> None:
+    """
+    Удаление всех фотографии из директории photos
+    Удаляет директорию photos и создает заново пустую директорию
+    """
+    directory = os.path.join(os.getcwd(), "photos")
     if os.path.exists(directory):
-        os.remove(directory)
+        try:
+            shutil.rmtree(directory)
+        except OSError as e:
+            print("Error: %s - %s." % (e.filename, e.strerror))
+    check_and_create_folder('photos')
 
 
 def get_all_images_names() -> list:
@@ -60,6 +84,21 @@ def get_all_images_names() -> list:
     path = os.path.join(os.getcwd(), "photos")
     images_names_list = os.listdir(path)
     return images_names_list
+
+
+def get_len_images() -> str:
+    """
+    Получить количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
+    :return: количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
+    """
+    path = os.path.join(os.getcwd(), "photos")
+    images_len = len(os.listdir(path))
+    try:
+        posts_day_count = images_len / POST_IN_DAY
+    except ZeroDivisionError:
+        posts_day_count = 0
+    text = f"Всего: {images_len} фотографий\nБудет публиковаться: {posts_day_count} дней"
+    return text
 
 
 def random_choice_image() -> str:
@@ -83,8 +122,6 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str) -> 
     8 - карусель
     """
     media = my_bot.get_media_info(media_id)[0]
-    print(media['media_type'])
-    print(my_bot.get_media_info(media_id))
     if media["media_type"] == 2:
         return
     if "image_versions2" in media.keys():
@@ -111,6 +148,7 @@ def download_all_user_photos(my_bot: object, nickname: str) -> None:
     :param my_bot: класс Bot из библиотеки instabot
     :param nickname: имя пользователя в инстаграмме и имя директории, куда будут сохранены фотографии
     """
+    check_and_create_folder('photos')
     twenty_last_medias = my_bot.get_total_user_medias(nickname)
     for i, media_id in enumerate(twenty_last_medias):
         download_photo_by_media_id(my_bot, media_id, filename=nickname + str(i))
@@ -122,7 +160,11 @@ def download_photos_by_url(my_bot: object, url: str) -> None:
     :param my_bot: класс Bot из библиотеки instabot
     :param url: ссылка на пост в инстаграмме
     """
+    check_and_create_folder('photos')
     # по url получаем id поста
     media_id = my_bot.get_media_id_from_link(url)
     filename = "my_choice" + str(time.time()).replace('.', '')
     download_photo_by_media_id(my_bot, media_id, filename=filename)
+
+
+# organic_tracking_token  -  уникальный хэш фото?
