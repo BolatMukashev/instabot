@@ -24,6 +24,15 @@ def connect() -> object:
     return bot
 
 
+def create_base_directory() -> None:
+    """
+    Проверяет и создает базовые директории, если таковые отсутствуют (при старте проекта)
+    """
+    folder_names = ["db", "photos"]
+    for el in folder_names:
+        check_and_create_folder(el)
+
+
 def clean_up(*args: str, config_dir_name: str = "config") -> None:
     """
     Удаляет ненужные директории при инициализации подключения, иначе подключение не получится
@@ -158,10 +167,23 @@ def download_all_user_photos(my_bot: object, nickname: str) -> None:
     :param my_bot: класс Bot из библиотеки instabot
     :param nickname: имя пользователя в инстаграмме и имя директории, куда будут сохранены фотографии
     """
-    check_and_create_folder('photos')
     twenty_last_medias = my_bot.get_total_user_medias(nickname)
     for i, media_id in enumerate(twenty_last_medias):
         download_photo_by_media_id(my_bot, media_id, filename=nickname + str(i))
+
+
+def update_all_users_photos(my_bot: object) -> int:
+    """
+    Скачать новые фотографии сохраненных пользователей (в базе никнеймов)
+    :param my_bot: класс Bot из библиотеки instabot
+    """
+    count_photos_in_start, _ = get_len_images()
+    users_nicknames = get_data_from_json_file(config.JSON_FILE_WITH_NICKNAMES)
+    for nickname in users_nicknames:
+        download_all_user_photos(my_bot, nickname)
+    count_photos_in_the_end, _ = get_len_images()
+    difference = count_photos_in_start - count_photos_in_the_end
+    return difference
 
 
 def download_photos_by_url(my_bot: object, url: str) -> None:
@@ -170,7 +192,6 @@ def download_photos_by_url(my_bot: object, url: str) -> None:
     :param my_bot: класс Bot из библиотеки instabot
     :param url: ссылка на пост в инстаграмме
     """
-    check_and_create_folder('photos')
     # по url получаем id поста
     media_id = my_bot.get_media_id_from_link(url)
     filename = "my_choice" + str(time.time()).replace('.', '')
@@ -188,15 +209,15 @@ def get_image_hash(response: object) -> str:
     return image_hash
 
 
-def check_image_in_base(json_file_name: str, image_hash: str) -> Union[bool, None]:
+def check_data_in_json_file(json_file_name: str, required_data: str) -> Union[bool, None]:
     """
-    Проверка фотографии в базе
-    :param json_file_name: Имя файла c хэшами
-    :param image_hash: хэш фотографии
+    Проверка наличия искомых данных в json файле
+    :param json_file_name: Имя json файла, где осуществляется поиск
+    :param required_data: искомое значение
     :return: True или None
     """
-    hashes_list = get_data_from_json_file(json_file_name)
-    if image_hash in hashes_list:
+    data = get_data_from_json_file(json_file_name)
+    if required_data in data:
         return True
 
 
@@ -207,7 +228,7 @@ def image_validation(response: object) -> bool:
     :return: True или False
     """
     image_hash = get_image_hash(response)
-    check_result = bool(check_image_in_base(config.HASH_JSON_FILE_NAME, image_hash))
+    check_result = bool(check_data_in_json_file(config.HASH_JSON_FILE_NAME, image_hash))
     if check_result is False:
         insert_new_data_in_json_file(config.HASH_JSON_FILE_NAME, image_hash)
     return check_result
@@ -219,20 +240,21 @@ def create_json_file(json_file_name: str, new_data: any) -> None:
     :param json_file_name: Имя файла
     :param new_data: Новые данные
     """
-    with open(json_file_name, 'w', encoding='utf-8') as json_file:
+    directory = os.path.join(os.getcwd(), 'db', json_file_name)
+    with open(directory, 'w', encoding='utf-8') as json_file:
         json.dump(new_data, json_file, ensure_ascii=False)
 
 
 def get_data_from_json_file(json_file_name: str) -> any:
     """
-    Получить данные из json файла
+    Получить данные из json файла. Если файла отсутствует - создает новый файл
     :param json_file_name: Имя файла
     :return: Данные из json файла
     """
-    directory = os.path.join(os.getcwd(), json_file_name)
+    directory = os.path.join(os.getcwd(), 'db', json_file_name)
     if not os.path.exists(directory):
         create_json_file(json_file_name, [])
-    with open(json_file_name, 'r', encoding='utf-8') as json_file:
+    with open(directory, 'r', encoding='utf-8') as json_file:
         data = json.load(json_file)
         return data
 
@@ -243,9 +265,9 @@ def insert_new_data_in_json_file(json_file_name: str, new_data: str) -> None:
     :param json_file_name: Имя файла
     :param new_data: Новые данные
     """
-    hash_list = get_data_from_json_file(json_file_name)
-    hash_list.append(new_data)
-    create_json_file(json_file_name, hash_list)
+    data = get_data_from_json_file(json_file_name)
+    data.append(new_data)
+    create_json_file(json_file_name, data)
 
 
 # автовыкладывание

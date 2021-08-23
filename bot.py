@@ -14,9 +14,10 @@ async def cmd_set_commands(message: types.Message):
     """Установить команды в боковой панели"""
     user_id = message.from_user.id
     if user_id == config.ADMIN_ID:
-        commands = [types.BotCommand(command="/delete_all", description="Удалить все фото"),
-                    types.BotCommand(command="/statistic", description="Статистика"),
-                    types.BotCommand(command="/send_500_photo", description="Отправить 500 фото")]
+        commands = [types.BotCommand(command="/statistic", description="Статистика"),
+                    types.BotCommand(command="/send_500_photo", description="Отправить 500 фото"),
+                    types.BotCommand(command="/update_db", description="Обновить базу фотографий"),
+                    types.BotCommand(command="/delete_all", description="Удалить все фото")]
         await bot.set_my_commands(commands)
         await message.answer("Команды установлены!")
 
@@ -45,6 +46,17 @@ async def command_send_500_photo(message: types.Message):
                 with open("photos/" + image_name, 'rb') as photo:
                     await bot.send_photo(config.CHAT_ID, photo)
                     functions.delete_image(image_name)
+    else:
+        await message.answer("Несанкционированный доступ!")
+
+
+@dp.message_handler(commands=["update_db"])
+async def command_update_db(message: types.Message):
+    """Пройдтись по базе никнеймов и добавить новые фотографии в директорию photos"""
+    telegram_id = message.from_user.id
+    if telegram_id == config.ADMIN_ID:
+        num = functions.update_all_users_photos(insta_bot)
+        await message.answer(f"Привет Босс! Успешно добавлено {num} фотографии в базу")
     else:
         await message.answer("Несанкционированный доступ!")
 
@@ -85,10 +97,8 @@ async def echo(message: types.Message):
         else:
             nickname = message.text
             functions.download_all_user_photos(insta_bot, nickname)
+            if not bool(functions.check_data_in_json_file(config.JSON_FILE_WITH_NICKNAMES, nickname)):
+                functions.insert_new_data_in_json_file(config.JSON_FILE_WITH_NICKNAMES, nickname)
             await message.answer("Фотографии пользователя добавлены в базу")
     else:
         await message.answer("Несанкционированный доступ!")
-
-
-
-

@@ -10,3 +10,4 @@ CHAT_ID = int(os.getenv('CHAT_ID'))
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 POST_IN_DAY = 10
 HASH_JSON_FILE_NAME = 'all_images_hashes.json'
+JSON_FILE_WITH_NICKNAMES = 'nicknames.json'
