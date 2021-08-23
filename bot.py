@@ -15,7 +15,8 @@ async def cmd_set_commands(message: types.Message):
     user_id = message.from_user.id
     if user_id == config.ADMIN_ID:
         commands = [types.BotCommand(command="/delete_all", description="Удалить все фото"),
-                    types.BotCommand(command="/statistic", description="Статистика")]
+                    types.BotCommand(command="/statistic", description="Статистика"),
+                    types.BotCommand(command="/send_500_photo", description="Отправить 500 фото")]
         await bot.set_my_commands(commands)
         await message.answer("Команды установлены!")
 
@@ -27,6 +28,23 @@ async def command_start(message: types.Message):
     if telegram_id == config.ADMIN_ID:
         await message.answer("Привет Босс!\n"
                              "Нажми /set_commands чтобы установить базовые команды")
+    else:
+        await message.answer("Несанкционированный доступ!")
+
+
+@dp.message_handler(commands=["send_500_photo"])
+async def command_send_500_photo(message: types.Message):
+    """Отправить 500 фото в чат для 'затравки'"""
+    telegram_id = message.from_user.id
+    if telegram_id == config.ADMIN_ID:
+        await message.answer("Привет Босс!")
+        images_len, posts_day_count = functions.get_len_images()
+        if images_len > 500:
+            for x in range(500):
+                image_name = functions.random_choice_image()
+                with open("photos/" + image_name, 'rb') as photo:
+                    await bot.send_photo(config.CHAT_ID, photo)
+                    functions.delete_image(image_name)
     else:
         await message.answer("Несанкционированный доступ!")
 
@@ -47,7 +65,9 @@ async def command_statistic(message: types.Message):
     """Получить информацию о базе фотографий"""
     telegram_id = message.from_user.id
     if telegram_id == config.ADMIN_ID:
-        text = functions.get_len_images()
+        images_len, posts_day_count = functions.get_len_images()
+        text = f"Всего: {images_len} фотографий\n" \
+               f"Будет публиковаться: {posts_day_count} дней"
         await message.answer(text)
     else:
         await message.answer("Несанкционированный доступ!")
@@ -62,9 +82,6 @@ async def echo(message: types.Message):
             post_url = message.text
             functions.download_photos_by_url(insta_bot, post_url)
             await message.answer("Фотографии из ссылки добавлены в базу")
-            # image_name = functions.random_choice_image()
-            # with open("photos/" + image_name, 'rb') as photo:
-            #     await bot.send_photo(config.CHAT_ID, photo)
         else:
             nickname = message.text
             functions.download_all_user_photos(insta_bot, nickname)

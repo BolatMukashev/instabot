@@ -95,7 +95,7 @@ def get_all_images_names() -> list:
     return images_names_list
 
 
-def get_len_images() -> str:
+def get_len_images() -> tuple:
     """
     Получить количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
     :return: количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
@@ -106,9 +106,7 @@ def get_len_images() -> str:
         posts_day_count = images_len / config.POST_IN_DAY
     except ZeroDivisionError:
         posts_day_count = 0
-    text = f"Всего: {images_len} фотографий\n" \
-           f"Будет публиковаться: {posts_day_count} дней"
-    return text
+    return images_len, posts_day_count
 
 
 def random_choice_image() -> str:
@@ -223,7 +221,6 @@ def create_json_file(json_file_name: str, new_data: any) -> None:
     """
     with open(json_file_name, 'w', encoding='utf-8') as json_file:
         json.dump(new_data, json_file, ensure_ascii=False)
-        print("Json файл создан/перезаписан")
 
 
 def get_data_from_json_file(json_file_name: str) -> any:
@@ -247,12 +244,11 @@ def insert_new_data_in_json_file(json_file_name: str, new_data: str) -> None:
     :param new_data: Новые данные
     """
     hash_list = get_data_from_json_file(json_file_name)
-    print(hash_list)
     hash_list.append(new_data)
-    print(hash_list)
     create_json_file(json_file_name, hash_list)
 
 
 # автовыкладывание
+# групповое выкладывание
 # комментирование
-# хеширование и валидация
+# классы json и т.д.
