@@ -1,10 +1,13 @@
 import os
 import time
+import json
 import shutil
 import random
+import config
+import hashlib
 import requests
+from typing import Union
 from instabot import Bot
-from config import INST_USERNAME, INST_PASSWORD, POST_IN_DAY
 
 
 test_list = []
@@ -17,7 +20,7 @@ def connect() -> object:
     """
     clean_up()
     bot = Bot()
-    bot.login(username=INST_USERNAME, password=INST_PASSWORD)
+    bot.login(username=config.INST_USERNAME, password=config.INST_PASSWORD)
     return bot
 
 
@@ -62,7 +65,10 @@ def delete_image(image_name: str) -> None:
     """
     image = os.path.join(os.getcwd(), "photos", image_name)
     if os.path.exists(image):
-        os.remove(image)
+        try:
+            os.remove(image)
+        except OSError as e:
+            print("Error: %s - %s." % (e.filename, e.strerror))
 
 
 def delete_all_images() -> None:
@@ -97,7 +103,7 @@ def get_len_images() -> str:
     path = os.path.join(os.getcwd(), "photos")
     images_len = len(os.listdir(path))
     try:
-        posts_day_count = images_len / POST_IN_DAY
+        posts_day_count = images_len / config.POST_IN_DAY
     except ZeroDivisionError:
         posts_day_count = 0
     text = f"Всего: {images_len} фотографий\n" \
@@ -126,24 +132,26 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str) -> 
     8 - карусель
     """
     media = my_bot.get_media_info(media_id)[0]
-    if media["media_type"] == 2:
-        return
-    if "image_versions2" in media.keys():
+    if "image_versions2" in media.keys() and media["media_type"] != 2:
         url = media["image_versions2"]["candidates"][0]["url"]
         response = requests.get(url)
-        image_name = os.path.join("photos", filename + ".jpg")
-        with open(image_name, "wb") as f:
-            response.raw.decode_content = True
-            f.write(response.content)
+        content = response.content
+        if not image_validation(content):
+            image_name = os.path.join("photos", filename + ".jpg")
+            with open(image_name, "wb") as f:
+                response.raw.decode_content = True
+                f.write(content)
     elif "carousel_media" in media.keys():
         for i, element in enumerate(media["carousel_media"]):
             if element['media_type'] != 2:
                 url = element['image_versions2']["candidates"][0]["url"]
                 response = requests.get(url)
-                image_name = os.path.join("photos", filename + "_" + str(i) + ".jpg")
-                with open(image_name, "wb") as f:
-                    response.raw.decode_content = True
-                    f.write(response.content)
+                content = response.content
+                if not image_validation(content):
+                    image_name = os.path.join("photos", filename + "_" + str(i) + ".jpg")
+                    with open(image_name, "wb") as f:
+                        response.raw.decode_content = True
+                        f.write(content)
 
 
 def download_all_user_photos(my_bot: object, nickname: str) -> None:
@@ -169,6 +177,81 @@ def download_photos_by_url(my_bot: object, url: str) -> None:
     media_id = my_bot.get_media_id_from_link(url)
     filename = "my_choice" + str(time.time()).replace('.', '')
     download_photo_by_media_id(my_bot, media_id, filename=filename)
+
+
+def get_image_hash(response: object) -> str:
+    """
+    Получаем хэш фотографии из объекта response
+    :param response: объект response
+    :return: хэш фотографии
+    """
+    byte_view_of_the_photo = response.__repr__().encode('utf-8')
+    image_hash = hashlib.md5(byte_view_of_the_photo).hexdigest()
+    return image_hash
+
+
+def check_image_in_base(json_file_name: str, image_hash: str) -> Union[bool, None]:
+    """
+    Проверка фотографии в базе
+    :param json_file_name: Имя файла c хэшами
+    :param image_hash: хэш фотографии
+    :return: True или None
+    """
+    hashes_list = get_data_from_json_file(json_file_name)
+    if image_hash in hashes_list:
+        return True
+
+
+def image_validation(response: object) -> bool:
+    """
+    Проверка фотографии в базе. Если есть - True, если нет - добавить хэш в базу и вернуть False
+    :param response: объект response
+    :return: True или False
+    """
+    image_hash = get_image_hash(response)
+    check_result = bool(check_image_in_base(config.HASH_JSON_FILE_NAME, image_hash))
+    if check_result is False:
+        insert_new_data_in_json_file(config.HASH_JSON_FILE_NAME, image_hash)
+    return check_result
+
+
+def create_json_file(json_file_name: str, new_data: any) -> None:
+    """
+    Создать json файл
+    :param json_file_name: Имя файла
+    :param new_data: Новые данные
+    """
+    with open(json_file_name, 'w', encoding='utf-8') as json_file:
+        json.dump(new_data, json_file, ensure_ascii=False)
+        print("Json файл создан/перезаписан")
+
+
+def get_data_from_json_file(json_file_name: str) -> any:
+    """
+    Получить данные из json файла
+    :param json_file_name: Имя файла
+    :return: Данные из json файла
+    """
+    directory = os.path.join(os.getcwd(), json_file_name)
+    if not os.path.exists(directory):
+        create_json_file(json_file_name, [])
+    with open(json_file_name, 'r', encoding='utf-8') as json_file:
+        data = json.load(json_file)
+        return data
+
+
+def insert_new_data_in_json_file(json_file_name: str, new_data: str) -> None:
+    """
+    Перезаписать json файл с новыми данными
+    :param json_file_name: Имя файла
+    :param new_data: Новые данные
+    """
+    hash_list = get_data_from_json_file(json_file_name)
+    print(hash_list)
+    hash_list.append(new_data)
+    print(hash_list)
+    create_json_file(json_file_name, hash_list)
+
 
 # автовыкладывание
 # комментирование
