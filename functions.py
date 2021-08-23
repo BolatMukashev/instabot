@@ -3,7 +3,7 @@ import time
 import json
 import shutil
 import random
-import config
+import bot_config
 import hashlib
 import requests
 from typing import Union
@@ -20,7 +20,7 @@ def connect() -> object:
     """
     clean_up()
     bot = Bot()
-    bot.login(username=config.INST_USERNAME, password=config.INST_PASSWORD)
+    bot.login(username=bot_config.INST_USERNAME, password=bot_config.INST_PASSWORD)
     return bot
 
 
@@ -28,33 +28,21 @@ def create_base_directory() -> None:
     """
     Проверяет и создает базовые директории, если таковые отсутствуют (при старте проекта)
     """
-    folder_names = ["db", "photos"]
-    for el in folder_names:
+    for el in bot_config.BASE_FOLDER_NAMES:
         check_and_create_folder(el)
 
 
-def clean_up(*args: str, config_dir_name: str = "config") -> None:
+def clean_up(config_dir_name: str = "config") -> None:
     """
     Удаляет ненужные директории при инициализации подключения, иначе подключение не получится
-    А так же удаляет директории по запросу
-    :param args: удаляет директории по запросу, прописывать названии ненужных дирректорий
     :param config_dir_name: по умолчанию удаляет папку config, иначе не произойдет подключение к API инстаграмм
     """
-    if args:
-        for nickname in args:
-            directory = os.path.join(os.getcwd(), "photos", nickname)
-            if os.path.exists(directory):
-                try:
-                    shutil.rmtree(directory)
-                except OSError as e:
-                    print("Error: %s - %s." % (e.filename, e.strerror))
-    else:
-        directory = os.path.join(os.getcwd(), config_dir_name)
-        if os.path.exists(directory):
-            try:
-                shutil.rmtree(directory)
-            except OSError as e:
-                print("Error: %s - %s." % (e.filename, e.strerror))
+    directory = os.path.join(os.getcwd(), config_dir_name)
+    if os.path.exists(directory):
+        try:
+            shutil.rmtree(directory)
+        except OSError as e:
+            print("Error: %s - %s." % (e.filename, e.strerror))
 
 
 def check_and_create_folder(folder_name: str) -> None:
@@ -112,7 +100,7 @@ def get_len_images() -> tuple:
     path = os.path.join(os.getcwd(), "photos")
     images_len = len(os.listdir(path))
     try:
-        posts_day_count = images_len / config.POST_IN_DAY
+        posts_day_count = images_len / bot_config.POST_IN_DAY
     except ZeroDivisionError:
         posts_day_count = 0
     return images_len, posts_day_count
@@ -178,7 +166,7 @@ def update_all_users_photos(my_bot: object) -> int:
     :param my_bot: класс Bot из библиотеки instabot
     """
     count_photos_in_start, _ = get_len_images()
-    users_nicknames = get_data_from_json_file(config.JSON_FILE_WITH_NICKNAMES)
+    users_nicknames = get_data_from_json_file(bot_config.JSON_FILE_WITH_NICKNAMES)
     for nickname in users_nicknames:
         download_all_user_photos(my_bot, nickname)
     count_photos_in_the_end, _ = get_len_images()
@@ -228,9 +216,9 @@ def image_validation(response: object) -> bool:
     :return: True или False
     """
     image_hash = get_image_hash(response)
-    check_result = bool(check_data_in_json_file(config.HASH_JSON_FILE_NAME, image_hash))
+    check_result = bool(check_data_in_json_file(bot_config.HASH_JSON_FILE_NAME, image_hash))
     if check_result is False:
-        insert_new_data_in_json_file(config.HASH_JSON_FILE_NAME, image_hash)
+        insert_new_data_in_json_file(bot_config.HASH_JSON_FILE_NAME, image_hash)
     return check_result
 
 
