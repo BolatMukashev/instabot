@@ -57,7 +57,7 @@ def check_and_create_folder(folder_name: str) -> None:
 
 def delete_image(image_name: str) -> None:
     """
-    Удаление фотографии из директории photos по названию фотографии
+    Удалить фотографию из директории photos по названию этой фотографии
     :param image_name: название фотографии
     """
     image = os.path.join(os.getcwd(), "photos", image_name)
@@ -66,6 +66,15 @@ def delete_image(image_name: str) -> None:
             os.remove(image)
         except OSError as e:
             print("Error: %s - %s." % (e.filename, e.strerror))
+
+
+def delete_images(image_names: list) -> None:
+    """
+    Удалить несколько фотографии из директории photos по названию фотографии
+    :param image_names: список с названиями фотографии
+    """
+    for image_name in image_names:
+        delete_image(image_name)
 
 
 def delete_all_images() -> None:
@@ -89,6 +98,21 @@ def get_all_images_names() -> list:
     """
     path = os.path.join(os.getcwd(), "photos")
     images_names_list = os.listdir(path)
+    return images_names_list
+
+
+def get_random_images_names(count: int) -> list:
+    """
+    Получить список имен случайно отобранных фотографий в директории photos
+    :count: Количество имен
+    :return: список из n имен
+    """
+    images_names_list = []
+    all_images_names_list = get_all_images_names()
+    while len(images_names_list) < count:
+        image_name = random.choice(all_images_names_list)
+        if image_name not in images_names_list:
+            images_names_list.append(image_name)
     return images_names_list
 
 
@@ -258,6 +282,7 @@ def insert_new_data_in_json_file(json_file_name: str, new_data: str) -> None:
     create_json_file(json_file_name, data)
 
 
+# фронт работ:
 # автовыкладывание
 # групповое выкладывание
 # комментирование

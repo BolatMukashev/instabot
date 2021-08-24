@@ -1,5 +1,6 @@
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types import InputMediaPhoto
 import bot_config
 import functions
 
@@ -44,10 +45,43 @@ async def command_send_500_photo(message: types.Message):
             for x in range(500):
                 image_name = functions.random_choice_image()
                 with open("photos/" + image_name, 'rb') as photo:
-                    await bot.send_photo(bot_config.CHAT_ID, photo)
-                    functions.delete_image(image_name)
+                    await bot.send_photo(bot_config.CHAT_NAME, photo)
+                functions.delete_image(image_name)
     else:
         await message.answer("Несанкционированный доступ!")
+
+
+@dp.message_handler(commands=["send_photo_to_chat"])
+async def command_send_photo_to_chat(message: types.Message):
+    telegram_id = message.from_user.id
+    if telegram_id == bot_config.ADMIN_ID:
+        li = functions.get_all_images_names()
+        media = [InputMediaPhoto(open("photos/" + li[0], 'rb'), 'ёжик и котятки')]
+        for photo_name in li[1:10]:
+            media.append(InputMediaPhoto(open("photos/" + photo_name, 'rb')))
+        await bot.send_media_group(bot_config.CHAT_NAME, media,)
+        await message.answer("Фотографии отправлены в чат")
+    else:
+        await message.answer("Несанкционированный доступ!")
+
+
+async def send_photo_to_chat(message: str, count: int = bot_config.POST_IN_ONE_TIME) -> None:
+    """
+    Отправить фотографии в телеграм канал.
+    Отбирает 10 рандомных фото (если их есть 10 и более).
+    К первой фотографии добавляет коммент, который будет отображаться на всю группу фотографий.
+    Отправляет фотографии в телеграм канал и удаляет.
+    :param message: Подпись под фотографиями
+    :param count: Количество фотографий отправляемых единовременно (максимум 10)
+    """
+    images_len, _ = functions.get_len_images()
+    if images_len >= count:
+        images_names = functions.get_random_images_names(count)
+        media = [InputMediaPhoto(open("photos/" + images_names[0], 'rb'), message)]
+        for photo_name in images_names[1:count]:
+            media.append(InputMediaPhoto(open("photos/" + photo_name, 'rb')))
+        await bot.send_media_group(bot_config.CHAT_NAME, media)
+        functions.delete_images(images_names)
 
 
 @dp.message_handler(commands=["update_db"])
