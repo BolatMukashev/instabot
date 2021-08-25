@@ -10,6 +10,9 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 insta_bot = functions.connect()
 
 
+images_folder = bot_config.PHOTO_SAVE_FOLDER_NAME + '/'
+
+
 @dp.message_handler(commands="set_commands", state="*")
 async def cmd_set_commands(message: types.Message):
     """Установить команды в боковой панели"""
@@ -44,23 +47,9 @@ async def command_send_500_photo(message: types.Message):
         if images_len > 500:
             for x in range(500):
                 image_name = functions.random_choice_image()
-                with open("photos/" + image_name, 'rb') as photo:
+                with open(images_folder + image_name, 'rb') as photo:
                     await bot.send_photo(bot_config.CHAT_NAME, photo)
                 functions.delete_image(image_name)
-    else:
-        await message.answer("Несанкционированный доступ!")
-
-
-@dp.message_handler(commands=["send_photo_to_chat"])
-async def command_send_photo_to_chat(message: types.Message):
-    telegram_id = message.from_user.id
-    if telegram_id == bot_config.ADMIN_ID:
-        li = functions.get_all_images_names()
-        media = [InputMediaPhoto(open("photos/" + li[0], 'rb'), 'ёжик и котятки')]
-        for photo_name in li[1:10]:
-            media.append(InputMediaPhoto(open("photos/" + photo_name, 'rb')))
-        await bot.send_media_group(bot_config.CHAT_NAME, media,)
-        await message.answer("Фотографии отправлены в чат")
     else:
         await message.answer("Несанкционированный доступ!")
 
@@ -77,22 +66,18 @@ async def send_photo_to_chat(message: str, count: int = bot_config.POST_IN_ONE_T
     images_len, _ = functions.get_len_images()
     if images_len >= count:
         images_names = functions.get_random_images_names(count)
-        media = [InputMediaPhoto(open("photos/" + images_names[0], 'rb'), message)]
+        media = [InputMediaPhoto(open(images_folder + images_names[0], 'rb'), message)]
         for photo_name in images_names[1:count]:
-            media.append(InputMediaPhoto(open("photos/" + photo_name, 'rb')))
+            media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))
         await bot.send_media_group(bot_config.CHAT_NAME, media)
         functions.delete_images(images_names)
 
 
-@dp.message_handler(commands=["update_db"])
-async def command_update_db(message: types.Message):
+async def update_db():
     """Пройдтись по базе никнеймов и добавить новые фотографии в директорию photos"""
-    telegram_id = message.from_user.id
-    if telegram_id == bot_config.ADMIN_ID:
-        num = functions.update_all_users_photos(insta_bot)
-        await message.answer(f"Привет Босс! Успешно добавлено {num} фотографии в базу")
-    else:
-        await message.answer("Несанкционированный доступ!")
+    num = functions.update_all_users_photos(insta_bot)
+    await bot.send_message(chat_id=bot_config.ADMIN_ID,
+                           text=f"Привет Босс! Успешно добавлено {num} фотографии в базу")
 
 
 @dp.message_handler(commands=["delete_all"])
@@ -122,7 +107,6 @@ async def command_statistic(message: types.Message):
 @dp.message_handler()
 async def echo(message: types.Message):
     telegram_id = message.from_user.id
-    print(message.chat.id)
     if telegram_id == bot_config.ADMIN_ID:
         if message.text[:8] == "https://":
             post_url = message.text
@@ -130,9 +114,9 @@ async def echo(message: types.Message):
             await message.answer("Фотографии из ссылки добавлены в базу")
         else:
             nickname = message.text
-            functions.download_all_user_photos(insta_bot, nickname)
             if not bool(functions.check_data_in_json_file(bot_config.JSON_FILE_WITH_NICKNAMES, nickname)):
                 functions.insert_new_data_in_json_file(bot_config.JSON_FILE_WITH_NICKNAMES, nickname)
+            functions.download_all_user_photos(insta_bot, nickname)
             await message.answer("Фотографии пользователя добавлены в базу")
     else:
         await message.answer("Несанкционированный доступ!")

@@ -20,7 +20,7 @@ def connect() -> object:
     """
     clean_up()
     bot = Bot()
-    bot.login(username=bot_config.INST_USERNAME, password=bot_config.INST_PASSWORD)
+    bot.login(username=bot_config.INST_USERNAME, password=bot_config.INST_PASSWORD, ask_for_code=True)
     return bot
 
 
@@ -55,12 +55,13 @@ def check_and_create_folder(folder_name: str) -> None:
         os.mkdir(directory)
 
 
-def delete_image(image_name: str) -> None:
+def delete_image(image_name: str, folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> None:
     """
     Удалить фотографию из директории photos по названию этой фотографии
+    :param folder: Хранилище фотографий
     :param image_name: название фотографии
     """
-    image = os.path.join(os.getcwd(), "photos", image_name)
+    image = os.path.join(os.getcwd(), folder, image_name)
     if os.path.exists(image):
         try:
             os.remove(image)
@@ -77,12 +78,12 @@ def delete_images(image_names: list) -> None:
         delete_image(image_name)
 
 
-def delete_all_images() -> None:
+def delete_all_images(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> None:
     """
     Удаление всех фотографии из директории photos
     Удаляет директорию photos и создает заново пустую директорию
     """
-    directory = os.path.join(os.getcwd(), "photos")
+    directory = os.path.join(os.getcwd(), folder)
     if os.path.exists(directory):
         try:
             shutil.rmtree(directory)
@@ -91,12 +92,12 @@ def delete_all_images() -> None:
     check_and_create_folder('photos')
 
 
-def get_all_images_names() -> list:
+def get_all_images_names(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> list:
     """
     Получить список имен всех фотографий в директории photos
     :return: список имен
     """
-    path = os.path.join(os.getcwd(), "photos")
+    path = os.path.join(os.getcwd(), folder)
     images_names_list = os.listdir(path)
     return images_names_list
 
@@ -116,12 +117,12 @@ def get_random_images_names(count: int) -> list:
     return images_names_list
 
 
-def get_len_images() -> tuple:
+def get_len_images(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> tuple:
     """
     Получить количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
     :return: количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
     """
-    path = os.path.join(os.getcwd(), "photos")
+    path = os.path.join(os.getcwd(), folder)
     images_len = len(os.listdir(path))
     try:
         posts_day_count = images_len / bot_config.POST_IN_DAY
@@ -140,11 +141,13 @@ def random_choice_image() -> str:
     return image_name
 
 
-def download_photo_by_media_id(my_bot: object, media_id: int, filename: str) -> None:
+def download_photo_by_media_id(my_bot: object, media_id: int, filename: str,
+                               folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> None:
     """
     :param my_bot: класс Bot из библиотеки instabot
     :param media_id: id поста, в которой возможно содержится фотография или крусель из фотографий
     :param filename: название, что будет приствоено фотографии
+    :param folder: Хранилище фотографий
     media_type:
     1 - фото
     2 - видео
@@ -156,7 +159,7 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str) -> 
         response = requests.get(url)
         content = response.content
         if not image_validation(content):
-            image_name = os.path.join("photos", filename + ".jpg")
+            image_name = os.path.join(folder, filename + ".jpg")
             with open(image_name, "wb") as f:
                 response.raw.decode_content = True
                 f.write(content)
@@ -167,7 +170,7 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str) -> 
                 response = requests.get(url)
                 content = response.content
                 if not image_validation(content):
-                    image_name = os.path.join("photos", filename + "_" + str(i) + ".jpg")
+                    image_name = os.path.join(folder, filename + "_" + str(i) + ".jpg")
                     with open(image_name, "wb") as f:
                         response.raw.decode_content = True
                         f.write(content)
@@ -177,9 +180,20 @@ def download_all_user_photos(my_bot: object, nickname: str) -> None:
     """
     Получить все фотографии пользователя
     :param my_bot: класс Bot из библиотеки instabot
-    :param nickname: имя пользователя в инстаграмме и имя директории, куда будут сохранены фотографии
+    :param nickname: имя пользователя в инстаграмме
     """
-    twenty_last_medias = my_bot.get_total_user_medias(nickname)
+    all_medias = my_bot.get_total_user_medias(nickname)
+    for i, media_id in enumerate(all_medias):
+        download_photo_by_media_id(my_bot, media_id, filename=nickname + str(i))
+
+
+def download_last_user_photos(my_bot: object, nickname: str) -> None:
+    """
+    Получить 20 последних фотографии пользователя
+    :param my_bot: класс Bot из библиотеки instabot
+    :param nickname: имя пользователя в инстаграмме
+    """
+    twenty_last_medias = my_bot.get_user_medias(nickname, filtration=None)
     for i, media_id in enumerate(twenty_last_medias):
         download_photo_by_media_id(my_bot, media_id, filename=nickname + str(i))
 
@@ -192,7 +206,7 @@ def update_all_users_photos(my_bot: object) -> int:
     count_photos_in_start, _ = get_len_images()
     users_nicknames = get_data_from_json_file(bot_config.JSON_FILE_WITH_NICKNAMES)
     for nickname in users_nicknames:
-        download_all_user_photos(my_bot, nickname)
+        download_last_user_photos(my_bot, nickname)
     count_photos_in_the_end, _ = get_len_images()
     difference = count_photos_in_start - count_photos_in_the_end
     return difference
