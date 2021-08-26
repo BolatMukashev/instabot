@@ -12,6 +12,5 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 POST_IN_DAY = 20
 POST_IN_ONE_TIME = 10
 PHOTO_SAVE_FOLDER_NAME = 'photos'
-HASH_JSON_FILE_NAME = 'all_images_hashes.json'
 JSON_FILE_WITH_IMAGES_HASHES = 'all_images_hashes.json'
 JSON_FILE_WITH_NICKNAMES = 'nicknames.json'

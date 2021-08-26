@@ -9,6 +9,7 @@ import requests
 from typing import Union
 from instabot import Bot
 
+from potoki import create_threads
 
 test_list = []
 
@@ -183,8 +184,9 @@ def download_all_user_photos(my_bot: object, nickname: str) -> None:
     :param nickname: имя пользователя в инстаграмме
     """
     all_medias = my_bot.get_total_user_medias(nickname)
-    for i, media_id in enumerate(all_medias):
-        download_photo_by_media_id(my_bot, media_id, filename=nickname + str(i))
+    create_threads(my_bot, all_medias, nickname)
+    # for i, media_id in enumerate(all_medias):
+    #     download_photo_by_media_id(my_bot, media_id, filename=nickname + str(i))
 
 
 def download_last_user_photos(my_bot: object, nickname: str) -> None:
@@ -254,9 +256,9 @@ def image_validation(response: object) -> bool:
     :return: True или False
     """
     image_hash = get_image_hash(response)
-    check_result = bool(check_data_in_json_file(bot_config.HASH_JSON_FILE_NAME, image_hash))
+    check_result = bool(check_data_in_json_file(bot_config.JSON_FILE_WITH_IMAGES_HASHES, image_hash))
     if check_result is False:
-        insert_new_data_in_json_file(bot_config.HASH_JSON_FILE_NAME, image_hash)
+        insert_new_data_in_json_file(bot_config.JSON_FILE_WITH_IMAGES_HASHES, image_hash)
     return check_result
 
 
