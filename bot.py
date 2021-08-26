@@ -47,6 +47,7 @@ async def command_send_500_photo(message: types.Message):
         if images_len > 500:
             for x in range(500):
                 image_name = functions.random_choice_image()
+                functions.paste_watermark(image_name)
                 with open(images_folder + image_name, 'rb') as photo:
                     await bot.send_photo(bot_config.CHAT_NAME, photo)
                 functions.delete_image(image_name)
@@ -66,6 +67,7 @@ async def send_photo_to_chat(message: str, count: int = bot_config.POST_IN_ONE_T
     images_len, _ = functions.get_len_images()
     if images_len >= count:
         images_names = functions.get_random_images_names(count)
+        functions.paste_watermarks_to_images(images_names)
         media = [InputMediaPhoto(open(images_folder + images_names[0], 'rb'), message)]
         for photo_name in images_names[1:count]:
             media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))

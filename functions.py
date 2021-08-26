@@ -8,6 +8,7 @@ import hashlib
 import requests
 from typing import Union
 from instabot import Bot
+from PIL import Image
 
 from potoki import create_threads
 
@@ -306,8 +307,24 @@ def insert_new_data_in_json_file(json_file_name: str, new_data: str) -> None:
     create_json_file(json_file_name, data)
 
 
+def paste_watermark(image_name) -> None:
+    directory = os.path.join(os.getcwd(), bot_config.PHOTO_SAVE_FOLDER_NAME, image_name)
+
+    image = Image.open(directory)
+
+    watermark = Image.open('watermark.png')
+    watermark_size_x = int(image.size[0] / 3)
+    watermark_size_y = int(watermark_size_x / 4.46)
+    new_watermark = watermark.resize((watermark_size_x, watermark_size_y), Image.ANTIALIAS)
+
+    image.paste(new_watermark, (image.size[0] - watermark_size_x, image.size[1] - watermark_size_y), new_watermark)
+    image.save(directory, "JPEG", optimize=True)
+
+
+def paste_watermarks_to_images(images_names: list) -> None:
+    for image in images_names:
+        paste_watermark(image)
+
+
 # фронт работ:
-# автовыкладывание
-# групповое выкладывание
-# комментирование
-# классы json и т.д.
+# наклейка лейбла при отправке в чат
