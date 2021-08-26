@@ -327,4 +327,4 @@ def paste_watermarks_to_images(images_names: list) -> None:
 
 
 # фронт работ:
-# наклейка лейбла при отправке в чат
+# нэйминг фотографий name_number_number.jpg

@@ -3,6 +3,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import InputMediaPhoto
 import bot_config
 import functions
+import time
 
 
 bot = Bot(token=bot_config.BOT_TOKEN)
@@ -42,15 +43,18 @@ async def command_send_500_photo(message: types.Message):
     """Отправить 500 фото в чат для 'затравки'"""
     telegram_id = message.from_user.id
     if telegram_id == bot_config.ADMIN_ID:
-        await message.answer("Привет Босс!")
         images_len, posts_day_count = functions.get_len_images()
         if images_len > 500:
-            for x in range(500):
-                image_name = functions.random_choice_image()
-                functions.paste_watermark(image_name)
-                with open(images_folder + image_name, 'rb') as photo:
-                    await bot.send_photo(bot_config.CHAT_NAME, photo)
-                functions.delete_image(image_name)
+            for x in range(50):
+                images_names = functions.get_random_images_names(bot_config.POST_IN_ONE_TIME)
+                functions.paste_watermarks_to_images(images_names)
+                message = "Ах, казашки, как Вы хороши!\nӘй, қазақ қыздары, сендер қандай жақсысыңдар!"
+                media = [InputMediaPhoto(open(images_folder + images_names[0], 'rb'), message)]
+                for photo_name in images_names[1:bot_config.POST_IN_ONE_TIME]:
+                    media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))
+                await bot.send_media_group(bot_config.CHAT_NAME, media)
+                functions.delete_images(images_names)
+                time.sleep(20)
     else:
         await message.answer("Несанкционированный доступ!")
 
