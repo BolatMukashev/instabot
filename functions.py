@@ -93,6 +93,16 @@ def delete_all_images(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> None:
     check_and_create_folder('photos')
 
 
+def image_name_validation(image_name):
+    """
+    Проверка разрешения
+    :param image_name: название фотографии
+    :return: название фотографии если разрешение ".jpg"
+    """
+    if image_name[-4:] == '.jpg':
+        return image_name
+
+
 def get_all_images_names(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> list:
     """
     Получить список имен всех фотографий в директории photos
@@ -100,6 +110,7 @@ def get_all_images_names(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> lis
     """
     path = os.path.join(os.getcwd(), folder)
     images_names_list = os.listdir(path)
+    images_names_list = list(filter(image_name_validation, images_names_list))
     return images_names_list
 
 
@@ -185,8 +196,6 @@ def download_all_user_photos(my_bot: object, nickname: str) -> None:
     """
     all_medias = my_bot.get_total_user_medias(nickname)
     create_threads(my_bot, all_medias, nickname)
-    # for i, media_id in enumerate(all_medias):
-    #     download_photo_by_media_id(my_bot, media_id, filename=nickname + str(i))
 
 
 def download_last_user_photos(my_bot: object, nickname: str) -> None:
@@ -196,8 +205,7 @@ def download_last_user_photos(my_bot: object, nickname: str) -> None:
     :param nickname: имя пользователя в инстаграмме
     """
     twenty_last_medias = my_bot.get_user_medias(nickname, filtration=None)
-    for i, media_id in enumerate(twenty_last_medias):
-        download_photo_by_media_id(my_bot, media_id, filename=nickname + str(i))
+    create_threads(my_bot, twenty_last_medias, nickname)
 
 
 def update_all_users_photos(my_bot: object) -> int:

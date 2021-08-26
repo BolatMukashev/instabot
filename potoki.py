@@ -54,12 +54,15 @@ class MyThread(Thread):
                             f.write(content)
 
 
-def create_threads(my_bot: object, all_medias: list, nickname: str):
+def create_threads(my_bot: object, all_medias: list, nickname: str, time_to_sleep: int = bot_config.TIME_TO_SLEEP,
+                   start_with: int = bot_config.DOWNLOAD_START_WITH):
     """
     Создаем группу потоков
     time.sleep(3) - без этого параметра instagram кидает бан на час.
+    3 секунды - оптимальный вариант
     """
     for i, media_id in enumerate(all_medias):
-        my_thread = MyThread(my_bot, media_id, filename=nickname + str(i))
-        my_thread.start()
-        time.sleep(2)
+        if i >= start_with:
+            my_thread = MyThread(my_bot, media_id, filename=nickname + str(i))
+            my_thread.start()
+            time.sleep(time_to_sleep)
