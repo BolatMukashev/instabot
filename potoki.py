@@ -63,6 +63,6 @@ def create_threads(my_bot: object, all_medias: list, nickname: str, time_to_slee
     """
     for i, media_id in enumerate(all_medias):
         if i >= start_with:
-            my_thread = MyThread(my_bot, media_id, filename=nickname + str(i))
+            my_thread = MyThread(my_bot, media_id, filename=nickname + "_" + str(i))
             my_thread.start()
             time.sleep(time_to_sleep)

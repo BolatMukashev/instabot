@@ -43,7 +43,7 @@ async def command_send_500_photo(message: types.Message):
     """Отправить 500 фото в чат для 'затравки'"""
     telegram_id = message.from_user.id
     if telegram_id == bot_config.ADMIN_ID:
-        images_len, posts_day_count = functions.get_len_images()
+        images_len, posts_day_count = functions.get_number_of_images()
         if images_len > 500:
             for x in range(50):
                 images_names = functions.get_random_images_names(bot_config.POST_IN_ONE_TIME)
@@ -54,12 +54,12 @@ async def command_send_500_photo(message: types.Message):
                     media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))
                 await bot.send_media_group(bot_config.CHAT_NAME, media)
                 functions.delete_images(images_names)
-                time.sleep(20)
+                time.sleep(30)
     else:
         await message.answer("Несанкционированный доступ!")
 
 
-async def send_photo_to_chat(message: str, count: int = bot_config.POST_IN_ONE_TIME) -> None:
+async def send_group_of_photos_to_chat(message: str, count: int = bot_config.POST_IN_ONE_TIME) -> None:
     """
     Отправить фотографии в телеграм канал.
     Отбирает 10 рандомных фото (если их есть 10 и более).
@@ -68,7 +68,7 @@ async def send_photo_to_chat(message: str, count: int = bot_config.POST_IN_ONE_T
     :param message: Подпись под фотографиями
     :param count: Количество фотографий отправляемых единовременно (максимум 10)
     """
-    images_len, _ = functions.get_len_images()
+    images_len, _ = functions.get_number_of_images()
     if images_len >= count:
         images_names = functions.get_random_images_names(count)
         functions.paste_watermarks_to_images(images_names)
@@ -102,7 +102,7 @@ async def command_statistic(message: types.Message):
     """Получить информацию о базе фотографий"""
     telegram_id = message.from_user.id
     if telegram_id == bot_config.ADMIN_ID:
-        images_len, posts_day_count = functions.get_len_images()
+        images_len, posts_day_count = functions.get_number_of_images()
         text = f"Всего: {images_len} фотографий\n" \
                f"Будет публиковаться: {posts_day_count} дней"
         await message.answer(text)

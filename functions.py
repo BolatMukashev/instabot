@@ -130,7 +130,7 @@ def get_random_images_names(count: int) -> list:
     return images_names_list
 
 
-def get_len_images(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> tuple:
+def get_number_of_images(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> tuple:
     """
     Получить количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
     :return: количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
@@ -214,11 +214,11 @@ def update_all_users_photos(my_bot: object) -> int:
     Скачать новые фотографии сохраненных пользователей (в базе никнеймов)
     :param my_bot: класс Bot из библиотеки instabot
     """
-    count_photos_in_start, _ = get_len_images()
+    count_photos_in_start, _ = get_number_of_images()
     users_nicknames = get_data_from_json_file(bot_config.JSON_FILE_WITH_NICKNAMES)
     for nickname in users_nicknames:
         download_last_user_photos(my_bot, nickname)
-    count_photos_in_the_end, _ = get_len_images()
+    count_photos_in_the_end, _ = get_number_of_images()
     difference = count_photos_in_start - count_photos_in_the_end
     return difference
 
