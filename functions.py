@@ -1,15 +1,13 @@
 import os
 import time
-import json
 import shutil
 import random
-import bot_config
 import hashlib
 import requests
-from typing import Union
-from instabot import Bot
+import bot_config
 from PIL import Image
-
+from instabot import Bot
+from json_classes import ImagesHashes, Nicknames
 from potoki import create_threads
 
 test_list = []
@@ -215,7 +213,7 @@ def update_all_users_photos(my_bot: object) -> int:
     :param my_bot: класс Bot из библиотеки instabot
     """
     count_photos_in_start, _ = get_number_of_images()
-    users_nicknames = get_data_from_json_file(bot_config.JSON_FILE_WITH_NICKNAMES)
+    users_nicknames = Nicknames.get_data_from_json_file()
     for nickname in users_nicknames:
         download_last_user_photos(my_bot, nickname)
     count_photos_in_the_end, _ = get_number_of_images()
@@ -223,7 +221,7 @@ def update_all_users_photos(my_bot: object) -> int:
     return difference
 
 
-def download_photos_by_url(my_bot: object, url: str) -> None:
+def download_photos_by_url(my_bot: object, url: str) -> str:
     """
     Скачать фото по ссылке на пост в инстаграмме
     :param my_bot: класс Bot из библиотеки instabot
@@ -233,6 +231,7 @@ def download_photos_by_url(my_bot: object, url: str) -> None:
     media_id = my_bot.get_media_id_from_link(url)
     filename = "my_choice" + str(time.time()).replace('.', '')
     download_photo_by_media_id(my_bot, media_id, filename=filename)
+    return filename
 
 
 def get_image_hash(response: object) -> str:
@@ -246,18 +245,6 @@ def get_image_hash(response: object) -> str:
     return image_hash
 
 
-def check_data_in_json_file(json_file_name: str, required_data: str) -> Union[bool, None]:
-    """
-    Проверка наличия искомых данных в json файле
-    :param json_file_name: Имя json файла, где осуществляется поиск
-    :param required_data: искомое значение
-    :return: True или None
-    """
-    data = get_data_from_json_file(json_file_name)
-    if required_data in data:
-        return True
-
-
 def image_validation(response: object) -> bool:
     """
     Проверка фотографии в базе. Если есть - True, если нет - добавить хэш в базу и вернуть False
@@ -265,46 +252,10 @@ def image_validation(response: object) -> bool:
     :return: True или False
     """
     image_hash = get_image_hash(response)
-    check_result = bool(check_data_in_json_file(bot_config.JSON_FILE_WITH_IMAGES_HASHES, image_hash))
+    check_result = bool(ImagesHashes.check_data_in_json_file(image_hash))
     if check_result is False:
-        insert_new_data_in_json_file(bot_config.JSON_FILE_WITH_IMAGES_HASHES, image_hash)
+        ImagesHashes.insert_new_data_in_json_file(image_hash)
     return check_result
-
-
-def create_json_file(json_file_name: str, new_data: any) -> None:
-    """
-    Создать json файл
-    :param json_file_name: Имя файла
-    :param new_data: Новые данные
-    """
-    directory = os.path.join(os.getcwd(), 'db', json_file_name)
-    with open(directory, 'w', encoding='utf-8') as json_file:
-        json.dump(new_data, json_file, ensure_ascii=False)
-
-
-def get_data_from_json_file(json_file_name: str) -> any:
-    """
-    Получить данные из json файла. Если файла отсутствует - создает новый файл
-    :param json_file_name: Имя файла
-    :return: Данные из json файла
-    """
-    directory = os.path.join(os.getcwd(), 'db', json_file_name)
-    if not os.path.exists(directory):
-        create_json_file(json_file_name, [])
-    with open(directory, 'r', encoding='utf-8') as json_file:
-        data = json.load(json_file)
-        return data
-
-
-def insert_new_data_in_json_file(json_file_name: str, new_data: str) -> None:
-    """
-    Перезаписать json файл с новыми данными
-    :param json_file_name: Имя файла
-    :param new_data: Новые данные
-    """
-    data = get_data_from_json_file(json_file_name)
-    data.append(new_data)
-    create_json_file(json_file_name, data)
 
 
 def paste_watermark(image_name) -> None:
@@ -324,7 +275,3 @@ def paste_watermark(image_name) -> None:
 def paste_watermarks_to_images(images_names: list) -> None:
     for image in images_names:
         paste_watermark(image)
-
-
-# фронт работ:
-# нэйминг фотографий name_number_number.jpg

@@ -1,16 +1,12 @@
 import os
 import time
-import bot_config
-from threading import Thread
 import requests
 import functions
-
-directory = os.path.join(os.getcwd(), bot_config.PHOTO_SAVE_FOLDER_NAME)
-
-images_names = os.listdir(directory)
+import bot_config
+from threading import Thread
 
 
-class MyThread(Thread):
+class ImagesDownloadsThread(Thread):
     """
     :param my_bot: класс Bot из библиотеки instabot
     :param media_id: id поста, в которой возможно содержится фотография или крусель из фотографий
@@ -63,6 +59,6 @@ def create_threads(my_bot: object, all_medias: list, nickname: str, time_to_slee
     """
     for i, media_id in enumerate(all_medias):
         if i >= start_with:
-            my_thread = MyThread(my_bot, media_id, filename=nickname + "_" + str(i))
+            my_thread = ImagesDownloadsThread(my_bot, media_id, filename=nickname + "_" + str(i))
             my_thread.start()
             time.sleep(time_to_sleep)

@@ -1,9 +1,10 @@
+import time
+import functions
+import bot_config
+from json_classes import Nicknames
+from aiogram.types import InputMediaPhoto
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types import InputMediaPhoto
-import bot_config
-import functions
-import time
 
 
 bot = Bot(token=bot_config.BOT_TOKEN)
@@ -20,9 +21,7 @@ async def cmd_set_commands(message: types.Message):
     user_id = message.from_user.id
     if user_id == bot_config.ADMIN_ID:
         commands = [types.BotCommand(command="/statistic", description="Статистика"),
-                    types.BotCommand(command="/send_500_photo", description="Отправить 500 фото"),
-                    types.BotCommand(command="/update_db", description="Обновить базу фотографий"),
-                    types.BotCommand(command="/delete_all", description="Удалить все фото")]
+                    types.BotCommand(command="/send_100_photo", description="Отправить 100 фото")]
         await bot.set_my_commands(commands)
         await message.answer("Команды установлены!")
 
@@ -38,23 +37,26 @@ async def command_start(message: types.Message):
         await message.answer("Несанкционированный доступ!")
 
 
-@dp.message_handler(commands=["send_500_photo"])
-async def command_send_500_photo(message: types.Message):
-    """Отправить 500 фото в чат для 'затравки'"""
+@dp.message_handler(commands=["send_100_photo"])
+async def command_send_100_photo(message: types.Message):
+    """Отправить 100 фото в чат для 'затравки'"""
     telegram_id = message.from_user.id
     if telegram_id == bot_config.ADMIN_ID:
         images_len, posts_day_count = functions.get_number_of_images()
-        if images_len > 500:
-            for x in range(50):
+        if images_len > 100:
+            for x in range(10):
                 images_names = functions.get_random_images_names(bot_config.POST_IN_ONE_TIME)
                 functions.paste_watermarks_to_images(images_names)
-                message = "Ах, казашки, как Вы хороши!\nӘй, қазақ қыздары, сендер қандай жақсысыңдар!"
+                message = "Порцию сексуальных казашек заказывали?\n" \
+                          "Сексуалды қазақ қыздарына тапсырыс бердіңіз бе?\n" \
+                          "#казашки #қазақ #қыздар"
                 media = [InputMediaPhoto(open(images_folder + images_names[0], 'rb'), message)]
                 for photo_name in images_names[1:bot_config.POST_IN_ONE_TIME]:
                     media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))
                 await bot.send_media_group(bot_config.CHAT_NAME, media)
                 functions.delete_images(images_names)
-                time.sleep(30)
+                time.sleep(60)
+            await bot.send_message(bot_config.ADMIN_ID, 'Все 100 фотографии опубликованы')
     else:
         await message.answer("Несанкционированный доступ!")
 
@@ -116,12 +118,13 @@ async def echo(message: types.Message):
     if telegram_id == bot_config.ADMIN_ID:
         if message.text[:8] == "https://":
             post_url = message.text
-            functions.download_photos_by_url(insta_bot, post_url)
-            await message.answer("Фотографии из ссылки добавлены в базу")
+            image_name = functions.download_photos_by_url(insta_bot, post_url)
+            await message.answer(f"Фотографии из ссылки добавлены в базу под именем\n"
+                                 f"{image_name}")
         else:
             nickname = message.text
-            if not bool(functions.check_data_in_json_file(bot_config.JSON_FILE_WITH_NICKNAMES, nickname)):
-                functions.insert_new_data_in_json_file(bot_config.JSON_FILE_WITH_NICKNAMES, nickname)
+            if not bool(Nicknames.check_data_in_json_file(nickname)):
+                Nicknames.insert_new_data_in_json_file(nickname)
             functions.download_all_user_photos(insta_bot, nickname)
             await message.answer("Фотографии пользователя добавлены в базу")
     else:

@@ -1,7 +1,7 @@
-from aiogram import executor
-from functions import create_base_directory
 import asyncio
 import aioschedule
+from aiogram import executor
+from functions import create_base_directory
 from bot import send_group_of_photos_to_chat, update_db
 
 
@@ -12,7 +12,7 @@ async def scheduler() -> None:
     Каждый понедельник, среду и пятницу обновляет базу фотографий по сохраненным никнеймам
     """
     aioschedule.every().day.at('8:30').do(send_group_of_photos_to_chat, message='Утренняя подборка красавиц')
-    aioschedule.every().day.at('6:30').do(send_group_of_photos_to_chat, message='Вечерняя подборка секси казашек')
+    aioschedule.every().day.at('19:30').do(send_group_of_photos_to_chat, message='Вечерняя подборка секси казашек')
     aioschedule.every().monday.at('5:00').do(update_db)
     aioschedule.every().wednesday.at('5:00').do(update_db)
     aioschedule.every().friday.at('5:00').do(update_db)
