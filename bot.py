@@ -117,8 +117,8 @@ async def echo(message: types.Message):
     telegram_id = message.from_user.id
     if telegram_id == bot_config.ADMIN_ID:
         if message.text[:8] == "https://":
-            post_url = message.text
-            image_name = functions.download_photos_by_url(insta_bot, post_url)
+            post_url, media_numbers = functions.get_post_url_and_media_numbers(message.text)
+            image_name = functions.download_photos_by_url(insta_bot, post_url, media_numbers)
             await message.answer(f"Фотографии из ссылки добавлены в базу под именем\n"
                                  f"{image_name}")
         else:

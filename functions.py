@@ -6,6 +6,7 @@ import hashlib
 import requests
 import bot_config
 from PIL import Image
+from typing import Tuple
 from instabot import Bot
 from json_classes import ImagesHashes, Nicknames
 from potoki import create_threads
@@ -152,12 +153,13 @@ def random_choice_image() -> str:
     return image_name
 
 
-def download_photo_by_media_id(my_bot: object, media_id: int, filename: str,
+def download_photo_by_media_id(my_bot: object, media_id: int, filename: str, media_numbers: list,
                                folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> None:
     """
     :param my_bot: класс Bot из библиотеки instabot
     :param media_id: id поста, в которой возможно содержится фотография или крусель из фотографий
     :param filename: название, что будет приствоено фотографии
+    :param media_numbers: список номеров media для загрузки из карусели
     :param folder: Хранилище фотографий
     media_type:
     1 - фото
@@ -176,7 +178,7 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str,
                 f.write(content)
     elif "carousel_media" in media.keys():
         for i, element in enumerate(media["carousel_media"]):
-            if element['media_type'] != 2:
+            if element['media_type'] != 2 and i in media_numbers:
                 url = element['image_versions2']["candidates"][0]["url"]
                 response = requests.get(url)
                 content = response.content
@@ -225,16 +227,17 @@ def update_all_users_photos(my_bot: object) -> int:
     return difference
 
 
-def download_photos_by_url(my_bot: object, url: str) -> str:
+def download_photos_by_url(my_bot: object, url: str, media_numbers: list) -> str:
     """
     Скачать фото по ссылке на пост в инстаграмме
     :param my_bot: класс Bot из библиотеки instabot
     :param url: ссылка на пост в инстаграмме
+    :param media_numbers: список номеров media для загрузки из карусели
     """
     # по url получаем id поста
     media_id = my_bot.get_media_id_from_link(url)
     filename = "my_choice" + str(time.time()).replace('.', '')
-    download_photo_by_media_id(my_bot, media_id, filename=filename)
+    download_photo_by_media_id(my_bot, media_id, filename, media_numbers)
     return filename
 
 
@@ -280,6 +283,24 @@ def get_nickname_and_download_limits(message: str) -> tuple:
     else:
         nickname_and_limits = (res[0], res[1], res[2])
     return nickname_and_limits
+
+
+def get_post_url_and_media_numbers(message: str) -> Tuple[str, list]:
+    """
+    Разбить сообщение на url поста и список из номеров необходимых медиа из карусели
+    :param message: Сообщение, присланное боту
+    :return: кортеж из url поста и списока из номеров необходимых медиа из карусели
+    """
+    res = message.replace('\n', '')
+    res = res.split()
+    res = [x.strip() for x in res]
+    post_url, *media_numbers = res
+    if media_numbers:
+        media_numbers = [int(x) - 1 for x in media_numbers]
+    else:
+        media_numbers = list(range(20))
+    url_and_numbers = (post_url, media_numbers)
+    return url_and_numbers
 
 
 def paste_watermark(image_name) -> None:
