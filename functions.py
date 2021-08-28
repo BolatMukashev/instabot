@@ -187,25 +187,28 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str,
                         f.write(content)
 
 
-def download_all_user_photos(my_bot: object, nickname: str, download_start_with: int) -> None:
+def download_all_user_photos(my_bot: object, nickname: str, start: int, stop: int) -> None:
     """
     Получить все фотографии пользователя
     :param my_bot: класс Bot из библиотеки instabot
     :param nickname: имя пользователя в инстаграмме
-    :param download_start_with: начать скачивание с media под номером n
+    :param start: начать скачивание с media под номером n
+    :param stop: закончить скачивание на media под номером n
     """
     all_medias = my_bot.get_total_user_medias(nickname)
-    create_threads(my_bot, all_medias, nickname, start_with=download_start_with)
+    create_threads(my_bot, all_medias, nickname, start=start, stop=stop)
 
 
-def download_last_user_photos(my_bot: object, nickname: str) -> None:
+def download_last_user_photos(my_bot: object, nickname: str, start: int = 0, stop: int = 10000) -> None:
     """
     Получить 20 последних фотографии пользователя
     :param my_bot: класс Bot из библиотеки instabot
     :param nickname: имя пользователя в инстаграмме
+    :param start: начать скачивание с media под номером n
+    :param stop: закончить скачивание на media под номером n
     """
     twenty_last_medias = my_bot.get_user_medias(nickname, filtration=None)
-    create_threads(my_bot, twenty_last_medias, nickname)
+    create_threads(my_bot, twenty_last_medias, nickname, start=start, stop=stop)
 
 
 def update_all_users_photos(my_bot: object) -> int:
@@ -257,6 +260,26 @@ def image_validation(response: object) -> bool:
     if check_result is False:
         ImagesHashes.insert_new_data_in_json_file(image_hash)
     return check_result
+
+
+def get_nickname_and_download_limits(message: str) -> tuple:
+    """
+    Разбить сообщение на никнейм, начало загрузки и конец загрузки
+    :param message: Сообщение, присланное боту
+    :return: кортеж из никнейма, начала загрузки и конца загрузки
+    """
+    res = message.replace('\n', '')
+    res = res.split()
+    res = [x.strip() for x in res]
+    if len(res) == 1:
+        nickname_and_limits = (res[0], 0, 10000)
+    elif len(res) == 2:
+        nickname_and_limits = (res[0], res[1], 10000)
+    elif len(res) == 3:
+        nickname_and_limits = (res[0], res[1], res[2])
+    else:
+        nickname_and_limits = (res[0], res[1], res[2])
+    return nickname_and_limits
 
 
 def paste_watermark(image_name) -> None:

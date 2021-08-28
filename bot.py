@@ -122,15 +122,10 @@ async def echo(message: types.Message):
             await message.answer(f"Фотографии из ссылки добавлены в базу под именем\n"
                                  f"{image_name}")
         else:
-            my_message = message.text.strip().split()
-            nickname = my_message[0]
-            try:
-                download_start_with = int(my_message[1])
-            except IndexError:
-                download_start_with = 0
+            nickname, start, stop = functions.get_nickname_and_download_limits(message.text)
             if not bool(Nicknames.check_data_in_json_file(nickname)):
                 Nicknames.insert_new_data_in_json_file(nickname)
-            functions.download_all_user_photos(insta_bot, nickname, download_start_with)
+            functions.download_all_user_photos(insta_bot, nickname, start, stop)
             await message.answer("Фотографии пользователя добавлены в базу")
     else:
         await message.answer("https://t.me/kazashki_qyzdar  - основной канал тут")

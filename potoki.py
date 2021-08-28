@@ -50,7 +50,7 @@ class ImagesDownloadsThread(Thread):
                             f.write(content)
 
 
-def create_threads(my_bot: object, all_medias: list, nickname: str, start_with: int,
+def create_threads(my_bot: object, all_medias: list, nickname: str, start: int, stop: int,
                    time_to_sleep: int = bot_config.TIME_TO_SLEEP):
     """
     Создаем группу потоков
@@ -58,7 +58,7 @@ def create_threads(my_bot: object, all_medias: list, nickname: str, start_with: 
     5 секунд - оптимальный вариант
     """
     for i, media_id in enumerate(all_medias):
-        if i >= start_with:
+        if start <= i <= stop:
             my_thread = ImagesDownloadsThread(my_bot, media_id, filename=nickname + "_" + str(i))
             my_thread.start()
             time.sleep(time_to_sleep)
