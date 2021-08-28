@@ -34,7 +34,7 @@ async def command_start(message: types.Message):
         await message.answer("Привет Босс!\n"
                              "Нажми /set_commands чтобы установить базовые команды")
     else:
-        await message.answer("Несанкционированный доступ!")
+        await message.answer("https://t.me/kazashki_qyzdar  - основной канал тут")
 
 
 @dp.message_handler(commands=["send_100_photo"])
@@ -53,12 +53,12 @@ async def command_send_100_photo(message: types.Message):
                 media = [InputMediaPhoto(open(images_folder + images_names[0], 'rb'), message)]
                 for photo_name in images_names[1:bot_config.POST_IN_ONE_TIME]:
                     media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))
-                await bot.send_media_group(bot_config.CHAT_NAME, media)
+                await bot.send_media_group(bot_config.CHANNEL_NAME, media)
                 functions.delete_images(images_names)
                 time.sleep(60)
             await bot.send_message(bot_config.ADMIN_ID, 'Все 100 фотографии опубликованы')
     else:
-        await message.answer("Несанкционированный доступ!")
+        await message.answer("https://t.me/kazashki_qyzdar  - основной канал тут")
 
 
 async def send_group_of_photos_to_chat(message: str, count: int = bot_config.POST_IN_ONE_TIME) -> None:
@@ -77,7 +77,7 @@ async def send_group_of_photos_to_chat(message: str, count: int = bot_config.POS
         media = [InputMediaPhoto(open(images_folder + images_names[0], 'rb'), message)]
         for photo_name in images_names[1:count]:
             media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))
-        await bot.send_media_group(bot_config.CHAT_NAME, media)
+        await bot.send_media_group(bot_config.CHANNEL_NAME, media)
         functions.delete_images(images_names)
 
 
@@ -109,7 +109,7 @@ async def command_statistic(message: types.Message):
                f"Будет публиковаться: {posts_day_count} дней"
         await message.answer(text)
     else:
-        await message.answer("Несанкционированный доступ!")
+        await message.answer("https://t.me/kazashki_qyzdar  - основной канал тут")
 
 
 @dp.message_handler()
@@ -122,10 +122,15 @@ async def echo(message: types.Message):
             await message.answer(f"Фотографии из ссылки добавлены в базу под именем\n"
                                  f"{image_name}")
         else:
-            nickname = message.text
+            my_message = message.text.strip().split()
+            nickname = my_message[0]
+            try:
+                download_start_with = int(my_message[1])
+            except IndexError:
+                download_start_with = 0
             if not bool(Nicknames.check_data_in_json_file(nickname)):
                 Nicknames.insert_new_data_in_json_file(nickname)
-            functions.download_all_user_photos(insta_bot, nickname)
+            functions.download_all_user_photos(insta_bot, nickname, download_start_with)
             await message.answer("Фотографии пользователя добавлены в базу")
     else:
-        await message.answer("Несанкционированный доступ!")
+        await message.answer("https://t.me/kazashki_qyzdar  - основной канал тут")
