@@ -178,7 +178,7 @@ def download_photo_by_media_id(my_bot: object, media_id: int, filename: str, med
                 f.write(content)
     elif "carousel_media" in media.keys():
         for i, element in enumerate(media["carousel_media"]):
-            if element['media_type'] != 2 and i in media_numbers:
+            if i in media_numbers and element['media_type'] != 2:
                 url = element['image_versions2']["candidates"][0]["url"]
                 response = requests.get(url)
                 content = response.content
