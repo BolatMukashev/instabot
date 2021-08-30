@@ -29,7 +29,7 @@ def create_base_directory() -> None:
     """
     Проверяет и создает базовые директории, если таковые отсутствуют (при старте проекта)
     """
-    for el in bot_config.BASE_FOLDER_NAMES:
+    for el in bot_config.BASE_FOLDERS_NAMES:
         check_and_create_folder(el)
 
 
