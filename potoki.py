@@ -1,5 +1,6 @@
 import os
 import time
+import random
 import requests
 import functions
 import bot_config
@@ -50,15 +51,15 @@ class ImagesDownloadsThread(Thread):
                             f.write(content)
 
 
-def create_threads(my_bot: object, all_medias: list, nickname: str, start: int, stop: int,
-                   time_to_sleep: int = bot_config.TIME_TO_SLEEP):
+def create_threads(my_bot: object, all_medias: list, nickname: str, start: int, stop: int):
     """
     Создаем группу потоков
-    time.sleep(5) - без этого параметра instagram кидает бан на час.
-    5 секунд - оптимальный вариант
+    time.sleep() - без этого параметра instagram кидает бан на час.
+    5 секунд - минимальный вариант (около 200 фото успевает скачать)
     """
     for i, media_id in enumerate(all_medias):
         if start <= i <= stop:
             my_thread = ImagesDownloadsThread(my_bot, media_id, filename=nickname + "_" + str(i))
             my_thread.start()
+            time_to_sleep = random.randrange(5, 11)
             time.sleep(time_to_sleep)
