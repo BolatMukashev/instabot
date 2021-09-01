@@ -1,4 +1,5 @@
 import time
+import messages
 import functions
 import bot_config
 from json_classes import Nicknames
@@ -34,7 +35,7 @@ async def command_start(message: types.Message):
         await message.answer("Привет Босс!\n"
                              "Нажми /set_commands чтобы установить базовые команды")
     else:
-        await message.answer("https://t.me/kazashki_qyzdar  - основной канал тут")
+        await message.answer(messages.promotion)
 
 
 @dp.message_handler(commands=["send_100_photo"])
@@ -58,7 +59,7 @@ async def command_send_100_photo(message: types.Message):
                 time.sleep(60)
             await bot.send_message(bot_config.ADMIN_ID, 'Все 100 фотографии опубликованы')
     else:
-        await message.answer("https://t.me/kazashki_qyzdar  - основной канал тут")
+        await message.answer(messages.promotion)
 
 
 async def send_group_of_photos_to_chat(message: str, count: int = bot_config.POST_IN_ONE_TIME) -> None:
@@ -96,7 +97,7 @@ async def command_delete_all(message: types.Message):
         functions.delete_all_images()
         await message.answer("Привет Босс! Все фотографии в базе удалены")
     else:
-        await message.answer("Несанкционированный доступ!")
+        await message.answer(messages.promotion)
 
 
 @dp.message_handler(commands=["statistic"])
@@ -109,7 +110,7 @@ async def command_statistic(message: types.Message):
                f"Будет публиковаться: {posts_day_count} дней"
         await message.answer(text)
     else:
-        await message.answer("https://t.me/kazashki_qyzdar  - основной канал тут")
+        await message.answer(messages.promotion)
 
 
 @dp.message_handler()
@@ -128,4 +129,4 @@ async def echo(message: types.Message):
             functions.download_all_user_photos(insta_bot, nickname, start, stop)
             await message.answer("Фотографии пользователя добавлены в базу")
     else:
-        await message.answer("https://t.me/kazashki_qyzdar  - основной канал тут")
+        await message.answer(messages.promotion)
