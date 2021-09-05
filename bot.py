@@ -3,6 +3,7 @@ import messages
 import functions
 import bot_config
 from json_classes import Nicknames
+from tqdm import tqdm as loading_bar
 from aiogram.types import InputMediaPhoto
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -76,7 +77,7 @@ async def send_group_of_photos_to_chat(message: str, count: int = bot_config.POS
         images_names = functions.get_random_images_names(count)
         functions.paste_watermarks_to_images(images_names)
         media = [InputMediaPhoto(open(images_folder + images_names[0], 'rb'), message)]
-        for photo_name in images_names[1:count]:
+        for photo_name in loading_bar(images_names[1:count], desc='Объединение фотографий в группу'):
             media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))
         await bot.send_media_group(bot_config.CHANNEL_NAME, media)
         functions.delete_images(images_names)

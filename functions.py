@@ -8,8 +8,10 @@ import bot_config
 from PIL import Image
 from typing import Tuple
 from instabot import Bot
-from json_classes import ImagesHashes, Nicknames
 from potoki import create_threads
+from tqdm import tqdm as loading_bar
+from json_classes import ImagesHashes, Nicknames
+
 
 test_list = []
 
@@ -318,5 +320,5 @@ def paste_watermark(image_name) -> None:
 
 
 def paste_watermarks_to_images(images_names: list) -> None:
-    for image in images_names:
+    for image in loading_bar(images_names, desc='Установка водяных знаков на фото'):
         paste_watermark(image)
