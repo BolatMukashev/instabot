@@ -1,0 +1,13 @@
+[Unit]
+Description=instabot
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/instabot
+Environment="PYTHONPATH=/home/ubuntu/instabot"
+ExecStart=/home/ubuntu/instabot/.venv/bin/python3 /home/ubuntu/instabot/main.py
+
+[Install]
+WantedBy=multi-user.target
