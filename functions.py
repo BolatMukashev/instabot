@@ -23,6 +23,7 @@ def connect() -> object:
     """
     clean_up()
     bot = Bot()
+    time.sleep(5)
     bot.login(username=bot_config.INST_USERNAME, password=bot_config.INST_PASSWORD, ask_for_code=True)
     return bot
 

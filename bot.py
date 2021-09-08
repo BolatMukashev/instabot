@@ -11,7 +11,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 bot = Bot(token=bot_config.BOT_TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
-# insta_bot = functions.connect()
+insta_bot = functions.connect()
 
 
 images_folder = bot_config.PHOTO_SAVE_FOLDER_NAME + '/'
