@@ -9,7 +9,7 @@ from PIL import Image
 from typing import Tuple
 from potoki import create_threads
 from tqdm import tqdm as loading_bar
-from json_classes import ImagesHashes
+from json_classes import ImagesHashes, PhotosData
 
 
 def create_base_directory() -> None:
@@ -41,6 +41,18 @@ def check_and_create_folder(folder_name: str) -> None:
     directory = os.path.join(os.getcwd(), folder_name)
     if not os.path.exists(directory):
         os.mkdir(directory)
+
+
+def get_number_of_images():
+    data = PhotosData.get_data_from_json_file()
+    keys = data.keys()
+    return len(keys)
+
+
+def get_n_random_message_id_from_data(count: int):
+    data = PhotosData.get_data_from_json_file()
+    keys = data.keys()
+    return random.sample(keys, count)
 
 
 def random_choice_image() -> str:

@@ -35,37 +35,24 @@ async def command_start(message: types.Message):
         await message.answer(messages.promotion)
 
 
-# async def send_photos_group_to_chat(message: str, count: int = bot_config.POST_IN_ONE_TIME) -> None:
-#     """
-#     Отправить фотографии в телеграм канал
-#     Отбирает 8 рандомных фото (если их есть 8 и более)
-#     К первой фотографии добавляет коммент, который будет отображаться на всю группу фотографий
-#     Отправляет фотографии в телеграм канал и удаляет
-#     :param message: Подпись под фотографиями
-#     :param count: Количество фотографий отправляемых единовременно (максимум 10)
-#     """
-#     images_len, _ = functions.get_number_of_images()
-#     if images_len >= count:
-#         images_names = functions.get_random_images_names(count)
-#         functions.paste_watermarks_to_images(images_names)
-#         media = [InputMediaPhoto(open(images_folder + images_names[0], 'rb'), message)]
-#         for photo_name in loading_bar(images_names[1:count], desc='Объединение фотографий в группу'):
-#             media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))
-#         await bot.send_media_group(bot_config.CHANNEL_NAME, media)
-#         functions.delete_images(images_names)
-#
-#
-# @dp.message_handler(commands=["statistic"])
-# async def command_statistic(message: types.Message):
-#     """Получить информацию о базе фотографий"""
-#     telegram_id = message.from_user.id
-#     if telegram_id == bot_config.ADMIN_ID:
-#         images_len, posts_day_count = functions.get_number_of_images()
-#         text = f"Всего: {images_len} фотографий\n" \
-#                f"Будет публиковаться: {posts_day_count} дней"
-#         await message.answer(text)
-#     else:
-#         await message.answer(messages.promotion)
+async def send_photos_group_to_chat(message: str, count: int = config.POST_IN_ONE_TIME) -> None:
+    """
+    Отправить фотографии в телеграм канал
+    Отбирает 8 рандомных фото (если их есть 8 и более)
+    К первой фотографии добавляет коммент, который будет отображаться на всю группу фотографий
+    Отправляет фотографии в телеграм канал и удаляет
+    :param message: Подпись под фотографиями
+    :param count: Количество фотографий отправляемых единовременно (максимум 10)
+    """
+    images_len = functions.get_number_of_images()
+    if images_len >= count:
+        messages_ids = functions.get_n_random_message_id_from_data(count)
+        functions.paste_watermarks_to_images(messages_ids)
+        media = [InputMediaPhoto(open(images_folder + messages_ids[0], 'rb'), message)]            # первая фотка
+        for photo_name in loading_bar(images_names[1:count], desc='Объединение фотографий в группу'):
+            media.append(InputMediaPhoto(open(images_folder + photo_name, 'rb')))
+        await bot.send_media_group(config.CHANNEL_RECIPIENT, media)
+        functions.delete_images(messages_ids)
 
 
 @dp.message_handler(content_types=['photo'])
@@ -115,8 +102,22 @@ async def image_hash_in_base(photo_id: str) -> Union[bool, None]:
         ImagesHashes.insert_new_data_in_json_file(image_hash)
 
 
+# @dp.message_handler(commands=["statistic"])
+# async def command_statistic(message: types.Message):
+#     """Получить информацию о базе фотографий"""
+#     telegram_id = message.from_user.id
+#     if telegram_id == bot_config.ADMIN_ID:
+#         images_len, posts_day_count = functions.get_number_of_images()
+#         text = f"Всего: {images_len} фотографий\n" \
+#                f"Будет публиковаться: {posts_day_count} дней"
+#         await message.answer(text)
+#     else:
+#         await message.answer(messages.promotion)
+
+
 @dp.message_handler()
 async def echo(message: types.Message):
     telegram_id = message.from_user.id
     if telegram_id == config.ADMIN_ID:
+        await research_all_messages()
         await message.answer(message.chat.id)
