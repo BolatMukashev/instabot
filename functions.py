@@ -2,37 +2,21 @@ import os
 import time
 import shutil
 import random
-import hashlib
+import imagehash
 import requests
-import bot_config
+import config
 from PIL import Image
 from typing import Tuple
-from instabot import Bot
 from potoki import create_threads
 from tqdm import tqdm as loading_bar
-from json_classes import ImagesHashes, Nicknames
-
-
-test_list = []
-
-
-def connect() -> object:
-    """
-    Осуществляем вход в инстаграм по логину и паролю
-    :return: объект Bot из библиотеки instabot
-    """
-    clean_up()
-    bot = Bot()
-    time.sleep(5)
-    bot.login(username=bot_config.INST_USERNAME, password=bot_config.INST_PASSWORD, ask_for_code=True)
-    return bot
+from json_classes import ImagesHashes
 
 
 def create_base_directory() -> None:
     """
     Проверяет и создает базовые директории, если таковые отсутствуют (при старте проекта)
     """
-    for el in bot_config.BASE_FOLDERS_NAMES:
+    for el in config.BASE_FOLDERS_NAMES:
         check_and_create_folder(el)
 
 
@@ -59,105 +43,19 @@ def check_and_create_folder(folder_name: str) -> None:
         os.mkdir(directory)
 
 
-def delete_image(image_name: str, folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> None:
-    """
-    Удалить фотографию из директории photos по названию этой фотографии
-    :param folder: Хранилище фотографий
-    :param image_name: название фотографии
-    """
-    image = os.path.join(os.getcwd(), folder, image_name)
-    if os.path.exists(image):
-        try:
-            os.remove(image)
-        except OSError as e:
-            print("Error: %s - %s." % (e.filename, e.strerror))
-
-
-def delete_images(image_names: list) -> None:
-    """
-    Удалить несколько фотографии из директории photos по названию фотографии
-    :param image_names: список с названиями фотографии
-    """
-    for image_name in image_names:
-        delete_image(image_name)
-
-
-def delete_all_images(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> None:
-    """
-    Удаление всех фотографии из директории photos
-    Удаляет директорию photos и создает заново пустую директорию
-    """
-    directory = os.path.join(os.getcwd(), folder)
-    if os.path.exists(directory):
-        try:
-            shutil.rmtree(directory)
-        except OSError as e:
-            print("Error: %s - %s." % (e.filename, e.strerror))
-    check_and_create_folder('photos')
-
-
-def image_name_validation(image_name):
-    """
-    Проверка разрешения
-    :param image_name: название фотографии
-    :return: название фотографии если разрешение ".jpg"
-    """
-    if image_name[-4:] == '.jpg':
-        return image_name
-
-
-def get_all_images_names(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> list:
-    """
-    Получить список имен всех фотографий в директории photos
-    :return: список имен
-    """
-    path = os.path.join(os.getcwd(), folder)
-    images_names_list = os.listdir(path)
-    images_names_list = list(filter(image_name_validation, images_names_list))
-    return images_names_list
-
-
-def get_random_images_names(count: int) -> list:
-    """
-    Получить список имен случайно отобранных фотографий в директории photos
-    :count: Количество имен
-    :return: список из n имен
-    """
-    images_names_list = []
-    all_images_names_list = get_all_images_names()
-    while len(images_names_list) < count:
-        image_name = random.choice(all_images_names_list)
-        if image_name not in images_names_list:
-            images_names_list.append(image_name)
-    return images_names_list
-
-
-def get_number_of_images(folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> tuple:
-    """
-    Получить количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
-    :return: количество всех сохраненных фотографий в директории photos и сколько дней они будут публиковаться
-    """
-    path = os.path.join(os.getcwd(), folder)
-    images_len = len(os.listdir(path))
-    try:
-        posts_day_count = images_len / bot_config.POST_IN_DAY
-    except ZeroDivisionError:
-        posts_day_count = 0
-    return images_len, posts_day_count
-
-
 def random_choice_image() -> str:
     """
     Выбрать случайное имя фотографии из директории photos
     :return: случайно выбранное имя
     """
-    images_names_list = get_all_images_names()
-    image_name = random.choice(images_names_list)
+    ...
+    messages_ids = ...
+    image_name = random.choice(messages_ids)
     return image_name
 
 
 def download_photo_by_media_id(my_bot: object, media_id: int, filename: str, media_numbers: list,
-                               folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME) -> None:
+                               folder: str = config.PHOTO_SAVE_FOLDER_NAME) -> None:
     """
     :param my_bot: класс Bot из библиотеки instabot
     :param media_id: id поста, в которой возможно содержится фотография или крусель из фотографий
@@ -216,20 +114,6 @@ def download_last_user_photos(my_bot: object, nickname: str, start: int = 0, sto
     create_threads(my_bot, twenty_last_medias, nickname, start=start, stop=stop)
 
 
-def update_all_users_photos(my_bot: object) -> int:
-    """
-    Скачать новые фотографии сохраненных пользователей (в базе никнеймов)
-    :param my_bot: класс Bot из библиотеки instabot
-    """
-    count_photos_in_start, _ = get_number_of_images()
-    users_nicknames = Nicknames.get_data_from_json_file()
-    for nickname in users_nicknames:
-        download_last_user_photos(my_bot, nickname)
-    count_photos_in_the_end, _ = get_number_of_images()
-    difference = count_photos_in_start - count_photos_in_the_end
-    return difference
-
-
 def download_photos_by_url(my_bot: object, url: str, media_numbers: list) -> str:
     """
     Скачать фото по ссылке на пост в инстаграмме
@@ -242,30 +126,6 @@ def download_photos_by_url(my_bot: object, url: str, media_numbers: list) -> str
     filename = "my_choice" + str(time.time()).replace('.', '')
     download_photo_by_media_id(my_bot, media_id, filename, media_numbers)
     return filename
-
-
-def get_image_hash(response: object) -> str:
-    """
-    Получаем хэш фотографии из объекта response
-    :param response: объект response
-    :return: хэш фотографии
-    """
-    byte_view_of_the_photo = response.__repr__().encode('utf-8')
-    image_hash = hashlib.md5(byte_view_of_the_photo).hexdigest()
-    return image_hash
-
-
-def image_validation(response: object) -> bool:
-    """
-    Проверка фотографии в базе. Если есть - True, если нет - добавить хэш в базу и вернуть False
-    :param response: объект response
-    :return: True или False
-    """
-    image_hash = get_image_hash(response)
-    check_result = bool(ImagesHashes.check_data_in_json_file(image_hash))
-    if check_result is False:
-        ImagesHashes.insert_new_data_in_json_file(image_hash)
-    return check_result
 
 
 def get_nickname_and_download_limits(message: str) -> tuple:
@@ -307,7 +167,7 @@ def get_post_url_and_media_numbers(message: str) -> Tuple[str, list]:
 
 
 def paste_watermark(image_name) -> None:
-    directory = os.path.join(os.getcwd(), bot_config.PHOTO_SAVE_FOLDER_NAME, image_name)
+    directory = os.path.join(os.getcwd(), config.PHOTO_SAVE_FOLDER_NAME, image_name)
 
     image = Image.open(directory)
 

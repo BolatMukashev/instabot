@@ -3,7 +3,7 @@ import time
 import random
 import requests
 import functions
-import bot_config
+import config
 from threading import Thread
 
 
@@ -19,7 +19,7 @@ class ImagesDownloadsThread(Thread):
     8 - карусель
     """
     def __init__(self, my_bot: object, media_id: int, filename: str,
-                 folder: str = bot_config.PHOTO_SAVE_FOLDER_NAME):
+                 folder: str = config.PHOTO_SAVE_FOLDER_NAME):
         """Инициализация потока"""
         Thread.__init__(self)
         self.my_bot = my_bot

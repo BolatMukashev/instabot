@@ -9,6 +9,7 @@ class JsonFile(object):
         """:param json_file_name: Имя файла"""
         self.json_file_name = json_file_name
         self.directory = os.path.join(os.getcwd(), 'db', self.json_file_name)
+        self.search_json_file_and_create()
 
     def create_json_file(self, new_data: any = None) -> None:
         """
@@ -16,7 +17,7 @@ class JsonFile(object):
         :param new_data: Новые данные
         """
         if new_data is None:
-            new_data = []
+            new_data: list = []
         with open(self.directory, 'w', encoding='utf-8') as json_file:
             json.dump(new_data, json_file, ensure_ascii=False)
 
@@ -30,7 +31,6 @@ class JsonFile(object):
         Получить данные из json файла.
         :return: Данные из json файла
         """
-        self.search_json_file_and_create()
         with open(self.directory, 'r', encoding='utf-8') as json_file:
             data = json.load(json_file)
             return data
@@ -55,5 +55,27 @@ class JsonFile(object):
             return True
 
 
-ImagesHashes = JsonFile("all_images_hashes.json")
-Nicknames = JsonFile("nicknames.json")
+class JsonFilePhotos(JsonFile):
+    def create_json_file(self, new_data: any = None) -> None:
+        """
+        Создать json файл
+        :param new_data: Новые данные
+        """
+        if new_data is None:
+            new_data: dict = {}
+        with open(self.directory, 'w', encoding='utf-8') as json_file:
+            json.dump(new_data, json_file, ensure_ascii=False)
+
+    def insert_new_data_in_json_file(self, message_id: int, photo_id: int) -> None:
+        """
+        Перезаписать json файл с новыми данными
+        :param message_id:
+        :param photo_id: Новые данные
+        """
+        data = self.get_data_from_json_file()
+        data[message_id] = photo_id
+        self.create_json_file(data)
+
+
+ImagesHashes = JsonFile("images_hashes.json")
+PhotosData = JsonFilePhotos("photos_data.json")
