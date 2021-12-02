@@ -19,7 +19,7 @@ class JsonFile(object):
         if new_data is None:
             new_data: list = []
         with open(self.directory, 'w', encoding='utf-8') as json_file:
-            json.dump(new_data, json_file, ensure_ascii=False)
+            json.dump(new_data, json_file, ensure_ascii=False, indent=4, sort_keys=True)
 
     def search_json_file_and_create(self) -> None:
         """Проверить, существует ли json файл. Если файла отсутствует - создает новый файл"""
@@ -64,9 +64,9 @@ class JsonFilePhotos(JsonFile):
         if new_data is None:
             new_data: dict = {}
         with open(self.directory, 'w', encoding='utf-8') as json_file:
-            json.dump(new_data, json_file, ensure_ascii=False)
+            json.dump(new_data, json_file, ensure_ascii=False, indent=4)
 
-    def insert_new_data_in_json_file(self, message_id: int, photo_id: int) -> None:
+    def insert_new_data_in_json_file(self, message_id: str, photo_id: str) -> None:
         """
         Перезаписать json файл с новыми данными
         :param message_id:
