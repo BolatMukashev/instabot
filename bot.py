@@ -22,8 +22,7 @@ async def cmd_set_commands(message: types.Message):
     """Установить команды в боковой панели"""
     user_id = message.from_user.id
     if user_id == bot_config.ADMIN_ID:
-        commands = [types.BotCommand(command="/statistic", description="Статистика"),
-                    types.BotCommand(command="/send_100_photo", description="Отправить 100 фото")]
+        commands = [types.BotCommand(command="/statistic", description="Статистика")]
         await bot.set_my_commands(commands)
         await message.answer("Команды установлены!")
 

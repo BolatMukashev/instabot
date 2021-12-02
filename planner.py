@@ -15,9 +15,6 @@ async def scheduler() -> None:
                                                                 message=messages.photo_album_morning_caption)
     aioschedule.every().day.at(bot_config.NIGHT_POST_TIME).do(send_group_of_photos_to_chat,
                                                               message=messages.photo_album_night_caption)
-    # aioschedule.every().monday.at(bot_config.PHOTO_DB_UPDATE_TIME).do(update_db)
-    # aioschedule.every().wednesday.at(bot_config.PHOTO_DB_UPDATE_TIME).do(update_db)
-    # aioschedule.every().friday.at(bot_config.PHOTO_DB_UPDATE_TIME).do(update_db)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(30)
