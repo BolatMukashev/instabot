@@ -9,7 +9,8 @@ from typing import Union
 from PIL import Image
 
 
-bot = Bot(token=config.BOT_TOKEN)
+token = config.BOT_TOKEN
+bot = Bot(token=token)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 
@@ -49,7 +50,8 @@ async def send_photos_group_to_chat(caption: str, count: int = config.POST_IN_ON
         print(f'{messages_ids=}')
         photos = functions.get_photos(messages_ids, caption)
         print(f'{photos=}')
-        await bot.send_media_group(config.CHANNEL_RECIPIENT, photos)
+        chat_id = config.CHANNEL_RECIPIENT if not config.DEBUG else config.CHANNEL_RECIPIENT_TEST
+        await bot.send_media_group(chat_id, photos)
         PhotosData.delete_images(messages_ids)
     else:
         await bot.send_message(config.ADMIN_ID, 'Фотки закончились!')
