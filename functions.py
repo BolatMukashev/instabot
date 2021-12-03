@@ -40,4 +40,4 @@ def get_photos(keys: list, caption: str) -> list:
     photos = [InputMediaPhoto(data[keys[0]], caption)]
     for el in keys[1:]:
         photos.append(InputMediaPhoto(data[el], ''))
-        return photos
+    return photos
