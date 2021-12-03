@@ -47,9 +47,7 @@ async def send_photos_group_to_chat(caption: str, count: int = config.POST_IN_ON
     images_len = functions.get_number_of_images()
     if images_len >= count:
         messages_ids = functions.get_n_random_message_id_from_data(count)
-        print(f'{messages_ids=}')
         photos = functions.get_photos(messages_ids, caption)
-        print(f'{photos=}')
         chat_id = config.CHANNEL_RECIPIENT if not config.DEBUG else config.CHANNEL_RECIPIENT_TEST
         await bot.send_media_group(chat_id, photos)
         PhotosData.delete_images(messages_ids)
