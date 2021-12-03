@@ -6,6 +6,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import imagehash
 from json_classes import ImagesHashes, PhotosData
 from typing import Union
+from PIL import Image
 
 
 bot = Bot(token=config.BOT_TOKEN)
@@ -70,7 +71,7 @@ async def scan_photo(message: types.Message):
     chat_id = message.chat.id
     message_id = message.message_id
     photo_id = message.photo[-1].file_id
-    if telegram_id == config.ADMIN_ID:
+    if telegram_id == config.ADMIN_ID and message.chat.id == config.CHANNEL_DONOR:
         image_hash = await image_hash_in_base(photo_id)
         if image_hash:
             await bot.delete_message(chat_id, message_id)
@@ -82,7 +83,7 @@ async def scan_photo(message: types.Message):
 async def get_photo_hash(photo_id: str):
     """Получить хэш фотографии"""
     photo = await bot.download_file_by_id(photo_id)
-    photo_hash = imagehash.average_hash(functions.Image.open(photo))
+    photo_hash = imagehash.average_hash(Image.open(photo))
     return str(photo_hash)
 
 
