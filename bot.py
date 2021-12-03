@@ -1,8 +1,6 @@
 import messages
 import functions
 import config
-from tqdm import tqdm as loading_bar
-from aiogram.types import InputMediaPhoto
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import imagehash
