@@ -76,6 +76,18 @@ class JsonFilePhotos(JsonFile):
         data[message_id] = photo_id
         self.create_json_file(data)
 
+    def delete_images(self, images: list):
+        """
+        Удалить упоминания о налии таких фотографий в группе.
+        Удалить сами фотки не получается, даже удаляя message -> фотография остается на серверах Telegram
+        :param images: список с ключами
+        :return:
+        """
+        data = self.get_data_from_json_file()
+        for el in images:
+            del data[el]
+        self.create_json_file(data)
+
 
 ImagesHashes = JsonFile("images_hashes.json")
 PhotosData = JsonFilePhotos("photos_data.json")
