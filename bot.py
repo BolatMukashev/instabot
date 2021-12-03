@@ -77,7 +77,7 @@ async def scan_photo(message: types.Message):
             await bot.delete_message(chat_id, message_id)
         else:
             PhotosData.insert_new_data_in_json_file(message_id, photo_id)
-            await message.answer(f'Будет добавлено в базу: {message_id}, {photo_id}')
+            await message.answer(f'Будет добавлено в базу: {message_id}')
 
 
 async def get_photo_hash(photo_id: str):
