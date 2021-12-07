@@ -7,6 +7,7 @@ DEBUG = bool(int(os.getenv('DEBUG')))
 
 BASE_FOLDERS_NAMES = ["db"]
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_TOKEN_TEST = os.getenv('BOT_TOKEN_TEST')
 ADMIN_ID = int(os.getenv('ADMIN_ID'))
 CHANNEL_DONOR = int(os.getenv('CHANNEL_DONOR'))
 CHANNEL_RECIPIENT = os.getenv('CHANNEL_RECIPIENT')

@@ -8,8 +8,9 @@ from json_classes import ImagesHashes, PhotosData
 from typing import Union
 from PIL import Image
 
+from keyboards.inline.likes_buttons import create_keyboard_with_8_buttons
 
-token = config.BOT_TOKEN
+token = config.BOT_TOKEN if not config.DEBUG else config.BOT_TOKEN_TEST
 bot = Bot(token=token)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
@@ -50,7 +51,8 @@ async def send_photos_group_to_chat(caption: str, count: int = config.POST_IN_ON
         photos = functions.get_photos(messages_ids, caption)
         chat_id = config.CHANNEL_RECIPIENT if not config.DEBUG else config.CHANNEL_RECIPIENT_TEST
         await bot.send_media_group(chat_id, photos)
-        PhotosData.delete_images(messages_ids)
+        if not config.DEBUG:
+            PhotosData.delete_images(messages_ids)
     else:
         await bot.send_message(config.ADMIN_ID, 'Фотки закончились!')
 
@@ -71,13 +73,12 @@ async def scan_photo(message: types.Message):
     chat_id = message.chat.id
     message_id = message.message_id
     photo_id = message.photo[-1].file_id
-    if telegram_id == config.ADMIN_ID and message.chat.id == config.CHANNEL_DONOR:
+    if telegram_id == config.ADMIN_ID and message.chat.id in (config.CHANNEL_DONOR, config.ADMIN_ID):
         image_hash = await image_hash_in_base(photo_id)
         if image_hash:
             await bot.delete_message(chat_id, message_id)
         else:
             PhotosData.insert_new_data_in_json_file(message_id, photo_id)
-            await message.answer(f'Фото было добавлено в базу: {message_id}')
 
 
 async def get_photo_hash(photo_id: str):
