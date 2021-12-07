@@ -111,7 +111,7 @@ async def command_statistic(message: types.Message):
         images_len = functions.get_number_of_images()
         posts_day_count = round(images_len / config.POST_IN_DAY, 2)
         text = f"Всего: {images_len} фотографий\n" \
-               f"Будет публиковаться: {posts_day_count} дней" \
+               f"Будет публиковаться: {posts_day_count} дней\n" \
                f"Время публикаций: {config.MORNING_POST_TIME} и {config.NIGHT_POST_TIME}"
         await message.answer(text)
     else:
