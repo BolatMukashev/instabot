@@ -7,8 +7,8 @@ import imagehash
 from json_classes import ImagesHashes, PhotosData
 from typing import Union
 from PIL import Image
-
 from keyboards.inline.likes_buttons import create_keyboard_with_8_buttons
+
 
 token = config.BOT_TOKEN if not config.DEBUG else config.BOT_TOKEN_TEST
 bot = Bot(token=token)
@@ -111,7 +111,8 @@ async def command_statistic(message: types.Message):
         images_len = functions.get_number_of_images()
         posts_day_count = round(images_len / config.POST_IN_DAY, 2)
         text = f"Всего: {images_len} фотографий\n" \
-               f"Будет публиковаться: {posts_day_count} дней"
+               f"Будет публиковаться: {posts_day_count} дней" \
+               f"Время публикаций: {config.MORNING_POST_TIME} и {config.NIGHT_POST_TIME}"
         await message.answer(text)
     else:
         await message.answer(messages.promotion)
